@@ -39,8 +39,8 @@ class PagesController extends Controller
         }
 
         if ($request->filled('nik')) {
-            $hash = hash('sha256', $request->nik);
-            $query->where('identity_hash', $hash);
+            $identity_hash = People::generateHmac($request->nik);
+            $query->where('identity_hash', $identity_hash);
         }
 
         if ($request->filled('category_id')) {

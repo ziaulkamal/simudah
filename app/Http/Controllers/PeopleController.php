@@ -2,45 +2,104 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\PeopleRequest;
 use App\Models\People;
+use App\Models\Role;
+use Illuminate\Support\Facades\Crypt;
 
 class PeopleController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Tampilkan data berdasarkan identity_hash
+     */
+    public function showByHash($identity_hash)
     {
-        $query = People::with(['role', 'category']);
+        $people = People::where('identity_hash', $identity_hash)->first();
 
-        // 🔍 Filter Nama
-        if ($request->filled('fullName')) {
-            $query->where('fullName', 'like', '%' . $request->fullName . '%');
+        if (!$people) {
+            return response()->json(['error' => 'Data tidak ditemukan'], 404);
         }
 
-        // 🔍 Filter Gender
-        if ($request->filled('gender')) {
-            $query->where('gender', $request->gender);
+        return response()->json($people);
+    }
+
+    /**
+     * Simpan data baru
+     */
+    public function store(PeopleRequest $request)
+    {
+        $data = $request->validated();
+
+        // Hitung umur
+        $data['age'] = (new \DateTime())->diff(new \DateTime($data['birthdate']))->y;
+
+        // Set role_id otomatis jika tidak dikirim
+        if (empty($data['role_id'])) {
+            $defaultRole = Role::where('status', 'active')
+                ->orderByDesc('level')
+                ->first();
+            $data['role_id'] = $defaultRole->id ?? null;
         }
 
-        // 🔍 Filter Rentang Umur
-        if ($request->filled('age_from')) {
-            $query->where('age', '>=', $request->age_from);
+        $people = People::create($data);
+        return response()->json($people, 201);
+    }
+
+    /**
+     * Update data
+     */
+    public function update(PeopleRequest $request, $id)
+    {
+        $people = People::find($id);
+        if (!$people) return response()->json(['error' => 'Data tidak ditemukan'], 404);
+
+        $data = $request->validated();
+
+
+        if (isset($data['birthdate'])) {
+            $data['age'] = (new \DateTime())->diff(new \DateTime($data['birthdate']))->y;
         }
 
-        if ($request->filled('age_to')) {
-            $query->where('age', '<=', $request->age_to);
+        $people->update($data);
+        return response()->json($people);
+    }
+
+    /**
+     * Hapus data
+     */
+    public function destroy($id)
+    {
+        $people = People::find($id);
+        if (!$people) return response()->json(['error' => 'Data tidak ditemukan'], 404);
+
+        $people->delete();
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Test NIK, cari berdasarkan identity_hash
+     */
+    public function testNik($nik)
+    {
+        // Cari orang melalui mutator HMAC di model
+        $identity_hash = People::generateHmac($nik);
+
+        $people = People::where('identity_hash', $identity_hash)->first();
+
+        if (!$people) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data dengan NIK ini tidak ditemukan',
+                'nik' => $nik,
+                'hash' => $identity_hash
+            ]);
         }
 
-        // 🔍 Filter Role atau Kategori (opsional)
-        if ($request->filled('role_id')) {
-            $query->where('role_id', $request->role_id);
-        }
-
-        if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
-        }
-
-        $peoples = $query->latest()->paginate(10);
-
-        return view('admin.person', compact('peoples'));
+        return response()->json([
+            'success' => true,
+            'message' => 'Data ditemukan',
+            'data' => $people,
+            'hash' => $identity_hash
+        ]);
     }
 }

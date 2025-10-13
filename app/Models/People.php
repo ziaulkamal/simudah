@@ -17,8 +17,10 @@ use Illuminate\Support\Facades\Crypt;
 class People extends Model
 {
     use HasFactory;
+
     protected $table = 'peoples';
 
+    protected $secret; // HMAC secret
 
     protected $fillable = [
         'fullName',
@@ -41,11 +43,44 @@ class People extends Model
         'category_id',
     ];
 
+    /**
+     * Booted: inisialisasi secret HMAC
+     */
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->secret = env('APP_KEY');
+        });
+
+        static::retrieved(function ($model) {
+            $model->secret = env('APP_KEY');
+        });
+    }
+
+    /**
+     * Ambil secret HMAC
+     */
+    public function getSecret(): string
+    {
+        return $this->secret ?? env('APP_KEY');
+    }
+
+    /**
+     * Generate HMAC untuk NIK / KK
+     */
+    public static function generateHmac(string $value): string
+    {
+        $secret = env('APP_KEY');
+        // $value = preg_replace('/\D/', '', $value); // pastikan hanya angka
+        return hash_hmac('sha256', $value, $secret);
+    }
+
+    // --- Mutators ---
     public function setIdentityNumberAttribute($value)
     {
         if ($value) {
             $this->attributes['identityNumber'] = Crypt::encryptString($value);
-            $this->attributes['identity_hash'] = hash('sha256', $value);
+            $this->attributes['identity_hash'] = $this->generateHmac($value);
         }
     }
 
@@ -58,7 +93,7 @@ class People extends Model
     {
         if ($value) {
             $this->attributes['familyIdentityNumber'] = Crypt::encryptString($value);
-            $this->attributes['family_identity_hash'] = hash('sha256', $value);
+            $this->attributes['family_identity_hash'] = $this->generateHmac($value);
         }
     }
 
@@ -92,14 +127,17 @@ class People extends Model
     {
         return $this->belongsTo(Provinces::class, 'provinceId');
     }
+
     public function regencie()
     {
         return $this->belongsTo(Regencies::class, 'regencieId');
     }
+
     public function district()
     {
         return $this->belongsTo(Districts::class, 'districtId');
     }
+
     public function village()
     {
         return $this->belongsTo(Villages::class, 'villageId');

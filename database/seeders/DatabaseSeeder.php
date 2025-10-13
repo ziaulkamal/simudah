@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
                 Kemendagri::class,
                 RoleSeeder::class,
                 CategorySeeder::class,
-                PeopleSeeder::class,
+                // PeopleSeeder::class,
             ]);
     }
 }

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('identityNumber'); // hasil terenkripsi, tidak bisa unique
             $table->string('identity_hash', 64)->unique();
 
-            $table->text('familyIdentityNumber'); // hasil terenkripsi
+            $table->text('familyIdentityNumber')->nullable(); // hasil terenkripsi
             $table->string('family_identity_hash', 64)->nullable(); // opsional untuk pencarian cepat
             $table->enum('gender', ['male', 'female']);
             $table->string('streetAddress');

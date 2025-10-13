@@ -3,10 +3,10 @@
     x-init="init()"
     class="space-y-4">
 
-    <input type="hidden" name="province_id" x-model="selectedProvince">
-    <input type="hidden" name="regency_id" x-model="selectedRegency">
-    <input type="hidden" name="district_id" x-model="selectedDistrict">
-    <input type="hidden" name="village_id" x-model="selectedVillage">
+    <input type="hidden" name="provinceId" x-model="selectedProvince">
+    <input type="hidden" name="regencieId" x-model="selectedRegency">
+    <input type="hidden" name="districtId" x-model="selectedDistrict">
+    <input type="hidden" name="villageId" x-model="selectedVillage">
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <!-- Provinsi -->

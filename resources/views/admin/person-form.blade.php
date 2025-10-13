@@ -29,100 +29,98 @@
           Formulir Data Pelanggan
         </p>
 
-        {{-- ⚙️ FORM TANPA JS AUTO FETCH --}}
-        <form action="#" method="POST" class="mt-4 space-y-4">
-          @csrf
+        <form x-data="peopleForm({{ isset($model) ? $model->id : 'null' }})"
+            @submit.prevent="submitForm"
+            method="POST"
+            action="{{ isset($model) ? route('people.update', $model->id) : route('people.store') }}"
+            class="mt-4 space-y-4">
+            @csrf
+            @if(isset($model))
+                @method('PUT')
+            @endif
 
-          {{-- Identity Numbers --}}
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <x-form-input
-              name="identityNumber"
-              label="No. KTP"
-              placeholder="Nomor KTP"
-              icon="fa-solid fa-id-card"
-              :value="$model->identityNumber ?? null" />
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <x-form-input
+                    name="identityNumber"
+                    label="No. KTP"
+                    placeholder="Nomor KTP"
+                    icon="fa-solid fa-id-card"
+                    :value="old('identityNumber', isset($model->identityNumber) ? Crypt::decryptString($model->identityNumber) : null)" />
 
-            <x-form-input
-              name="familyIdentityNumber"
-              label="No. KK"
-              placeholder="Nomor Kartu Keluarga"
-              icon="fa-solid fa-users"
-              :value="$model->familyIdentityNumber ?? null" />
-          </div>
-
-          {{-- Full Name --}}
-          <x-form-input
-            name="fullName"
-            label="Nama Lengkap"
-            placeholder="Nama lengkap Anda"
-            icon="fa-regular fa-user"
-            :value="$model->fullName ?? null" />
-
-          {{-- Age & Birthdate --}}
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <x-form-input
-                name="age"
-                label="Usia"
-                placeholder="##"
-                icon="fa-solid fa-hashtag"
-                :value="$model->age ?? null"
-                readonly />
+                <x-form-input
+                    name="familyIdentityNumber"
+                    label="No. KK"
+                    placeholder="Nomor Kartu Keluarga"
+                    icon="fa-solid fa-users"
+                    :value="old('familyIdentityNumber', isset($model->familyIdentityNumber) ? Crypt::decryptString($model->familyIdentityNumber) : null)" />
+            </div>
 
             <x-form-input
-                name="birthdate"
-                label="Tanggal Lahir"
-                type="date"
-                icon="fa-regular fa-calendar"
-                :value="$model->birthdate ?? null" />
-        </div>
+                name="fullName"
+                label="Nama Lengkap"
+                placeholder="Nama lengkap Anda"
+                icon="fa-regular fa-user"
+                :value="old('fullName', $model->fullName ?? null)" />
 
-          {{-- Gender --}}
-          <x-select-dropdown
-            name="gender"
-            label="Jenis Kelamin"
-            :options="['male' => 'Laki-laki', 'female' => 'Perempuan']"
-            :selected="old('gender', $model->gender ?? null)" />
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <x-form-input
+                    name="age"
+                    label="Usia"
+                    placeholder="##"
+                    icon="fa-solid fa-hashtag"
+                    :value="old('age', $model->age ?? null)"
+                    readonly />
 
-          {{-- Religion --}}
-          <x-select-dropdown
-            name="religion"
-            label="Agama"
-            :options="[
-                '1' => 'Islam',
-                '2' => 'Kristen',
-                '3' => 'Katolik',
-                '4' => 'Hindu',
-                '5' => 'Buddha',
-                '6' => 'Konghucu'
-            ]"
-            :selected="old('religion', $model->religion ?? null)" />
+                <x-form-input
+                    name="birthdate"
+                    label="Tanggal Lahir"
+                    type="date"
+                    icon="fa-regular fa-calendar"
+                    :value="old('birthdate', $model->birthdate ?? null)" />
+            </div>
 
-          {{-- Wilayah Dropdown --}}
-          <x-wilayah-dropdown
-            :provinceId="old('provinceId', $model->provinceId ?? null)"
-            :regencyId="old('regencyId', $model->regencyId ?? null)"
-            :districtId="old('districtId', $model->districtId ?? null)"
-            :villageId="old('villageId', $model->villageId ?? null)" />
+            <x-select-dropdown
+                name="gender"
+                label="Jenis Kelamin"
+                :options="['male' => 'Laki-laki', 'female' => 'Perempuan']"
+                :selected="old('gender', $model->gender ?? null)" />
 
-          {{-- Contact --}}
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <x-form-input
-              name="phoneNumber"
-              label="Nomor Telepon"
-              placeholder="08xxxxxxxxxx"
-              :value="$model->phoneNumber ?? null" />
+            <x-select-dropdown
+                name="religion"
+                label="Agama"
+                :options="[
+                    '1' => 'Islam',
+                    '2' => 'Kristen',
+                    '3' => 'Katolik',
+                    '4' => 'Hindu',
+                    '5' => 'Buddha',
+                    '6' => 'Konghucu'
+                ]"
+                :selected="old('religion', $model->religion ?? null)" />
 
-            <x-form-input
-              name="email"
-              label="Email"
-              placeholder="Alamat email (opsional)"
-              type="email"
-              icon="fa-regular fa-envelope"
-              :value="$model->email ?? null" />
-          </div>
+            <x-wilayah-dropdown
+                :provinceId="old('provinceId', $model->provinceId ?? null)"
+                :regencyId="old('regencyId', $model->regencieId ?? null)"
+                :districtId="old('districtId', $model->districtId ?? null)"
+                :villageId="old('villageId', $model->villageId ?? null)" />
 
-          {{-- Submit --}}
-          <x-button type="submit" label="Simpan Data" color="primary" />
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <x-form-input
+                    name="phoneNumber"
+                    label="Nomor Telepon"
+                    placeholder="08xxxxxxxxxx"
+                    :value="old('phoneNumber', $model->phoneNumber ?? null)" />
+
+                <x-form-input
+                    name="email"
+                    label="Email"
+                    placeholder="Alamat email (opsional)"
+                    type="email"
+                    icon="fa-regular fa-envelope"
+                    :value="old('email', $model->email ?? null)" />
+            </div>
+
+            <x-button type="submit" label="{{ isset($model) ? 'Perbarui Data' : 'Simpan Data' }}" color="primary" />
         </form>
 
       </div>
@@ -132,6 +130,71 @@
 @endsection
 
 @push('scripts')
+<script>
+function peopleForm(id = null) {
+    return {
+        loading: false,
+        async submitForm(event) {
+            this.loading = true;
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            // Convert FormData ke JSON
+            let object = {};
+            formData.forEach((value, key) => object[key] = value);
+            const jsonData = JSON.stringify(object);
+
+            // Ambil method yang sebenarnya (_method atau form.method)
+            let method = form.querySelector('input[name="_method"]')?.value || form.method;
+            method = method.toUpperCase();
+
+            // Jika update, pastikan URL termasuk ID
+            let url = form.action;
+            if (method === 'PUT' && id) {
+                url = `/api/people/${id}`;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: jsonData
+                });
+
+                const contentType = response.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Bukan JSON:', text);
+                    alert('Terjadi kesalahan server');
+                    return;
+                }
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    console.error(errData);
+                    alert('Terjadi kesalahan saat menyimpan data');
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('Data tersimpan:', data);
+                alert('Data berhasil disimpan!');
+            } catch (error) {
+                console.error(error);
+                alert('Terjadi kesalahan jaringan.');
+            } finally {
+                this.loading = false;
+            }
+        }
+    }
+}
+</script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const nikInput = document.querySelector('[name="identityNumber"]');
@@ -176,12 +239,15 @@ document.addEventListener('DOMContentLoaded', function () {
         checkAndTriggerSearch();
     };
 
+    // --- Perbaikan fetch NIK ---
     const fetchNIKData = async (nik) => {
         try {
-
-            const sigRes = await fetch(`/signature?nik=${nik}`);
+            // Kirim GET tanpa body
+            const sigRes = await fetch(`/signature?nik=${encodeURIComponent(nik)}`);
             const { signature, timestamp } = await sigRes.json();
+
             nikInput.classList.add('opacity-50', 'cursor-wait');
+
             const response = await fetch('/api/mendagri/identity/nik', {
                 method: 'POST',
                 headers: {
@@ -190,8 +256,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     'X-App-Signature': signature,
                     'X-App-Timestamp': timestamp
                 },
-                body: JSON.stringify({ nik })
+                body: JSON.stringify({ nik }) // POST → aman
             });
+
             if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
             setFormValues(data);
@@ -203,12 +270,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
+    // --- Perbaikan search ---
     const triggerIdentitySearch = async () => {
         const nik = nikInput.value;
         const name = fullNameInput.value || fullNameInput.placeholder;
-        const sigRes = await fetch(`/signature?nik=${nik}`);
-        const { signature, timestamp } = await sigRes.json();
         if (!nik || !name) return;
+
+        // GET signature tanpa body
+        const sigRes = await fetch(`/signature?nik=${encodeURIComponent(nik)}&name=${encodeURIComponent(name)}`);
+        const { signature, timestamp } = await sigRes.json();
 
         try {
             const response = await fetch('/api/mendagri/identity/search', {
@@ -219,8 +289,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     'X-App-Signature': signature,
                     'X-App-Timestamp': timestamp
                 },
-                body: JSON.stringify({ nik, name })
+                body: JSON.stringify({ nik, name }) // POST → aman
             });
+
             if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
             console.log('Search API Response:', data);
