@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
-    <title>Lineone - CRM Analytics Dashboard</title>
+    <title>{{ $title ?? config('APP_NAME') }}</title>
     <link rel="icon" type="image/png" href="images/favicon.png" />
     <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}" />
     <script src="{{ asset('build/assets/app.js') }}" defer></script>
@@ -31,8 +31,10 @@
     </div>
 
     <div id="x-teleport-target"></div>
+    @stack('scripts')
     <script>
       window.addEventListener("DOMContentLoaded", () => Alpine.start());
     </script>
+
   </body>
 </html>

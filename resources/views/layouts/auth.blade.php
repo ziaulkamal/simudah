@@ -9,7 +9,7 @@
       content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
     />
 
-    <title>Lineone - Sign In v1</title>
+    <title>{{ $title ?? config('APP_NAME') }}</title>
     <link rel="icon" type="image/png" href="images/favicon.png" />
     <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}" />
     <script src="{{ asset('build/assets/app.js') }}" defer></script>
