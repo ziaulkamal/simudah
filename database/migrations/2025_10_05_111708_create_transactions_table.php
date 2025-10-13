@@ -40,7 +40,7 @@ return new class extends Migration
             $table->decimal('amount', 12, 2);
 
             // status transaksi
-            $table->enum('status', ['pending', 'paid', 'failed', 'cancelled'])
+            $table->enum('status', ['pending', 'paid', 'cancelled'])
                 ->default('pending');
 
             // tanggal pembayaran aktual

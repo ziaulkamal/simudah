@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class PeopleDocument extends Model
 {
     use HasFactory;
+    protected $table = 'people_documents';
 
     protected $fillable = [
         'people_id',

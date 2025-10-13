@@ -2,6 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Category;
+use App\Models\Kemendagri\Districts;
+use App\Models\Kemendagri\Provinces;
+use App\Models\Kemendagri\Regencies;
+use App\Models\Kemendagri\Villages;
+use App\Models\PeopleDocument;
+use App\Models\Role;
+use App\Models\Transaction;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
@@ -9,6 +17,8 @@ use Illuminate\Support\Facades\Crypt;
 class People extends Model
 {
     use HasFactory;
+    protected $table = 'peoples';
+
 
     protected $fillable = [
         'fullName',
@@ -76,5 +86,22 @@ class People extends Model
     public function transactions()
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function province()
+    {
+        return $this->belongsTo(Provinces::class, 'provinceId');
+    }
+    public function regencie()
+    {
+        return $this->belongsTo(Regencies::class, 'regencieId');
+    }
+    public function district()
+    {
+        return $this->belongsTo(Districts::class, 'districtId');
+    }
+    public function village()
+    {
+        return $this->belongsTo(Villages::class, 'villageId');
     }
 }
