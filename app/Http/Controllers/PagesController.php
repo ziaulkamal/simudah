@@ -101,6 +101,22 @@ class PagesController extends Controller
         return view('admin.person-form', $data);
     }
 
+    // function viewsPeople($hash)
+    // {
+
+    //     $query = People::where('identity_hash', $hash)->first();
+
+    //     $data = [
+    //         'title'         => 'Detail Pelanggan',
+    //         'menu'          => 'pelanggan',
+    //         'submenu'       => 'Data Pelanggan',
+    //         'titleMenus'    => 'Pelanggan',
+    //         'sectionMenu'   => 'main-menu',
+    //         'people'        => $query,
+    //     ];
+    //     return view('admin.person-view', $data);
+    // }
+
     function addons()  {
         $data = [
             'title'         => 'Dashboard',

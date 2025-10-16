@@ -100,7 +100,7 @@
                                 </td>
 
                                 <td class="px-4 py-3 text-center">
-                                    <a href="#" class="btn space-x-2 bg-info font-medium text-white hover:bg-info-focus hover:shadow-lg hover:shadow-info/50 focus:bg-info-focus focus:shadow-lg focus:shadow-info/50 active:bg-info-focus/90" x-tooltip.placement.right="'Selengkapnya'">
+                                    <a href="{{ route('customer.view', ['hash' => $person->identity_hash ]) }}" class="btn space-x-2 bg-info font-medium text-white hover:bg-info-focus hover:shadow-lg hover:shadow-info/50 focus:bg-info-focus focus:shadow-lg focus:shadow-info/50 active:bg-info-focus/90" x-tooltip.placement.right="'Selengkapnya'">
                                         <span class="flex items-center justify-center w-full h-full bg-purple text-pink-500 rounded-[inherit]">
                                             <i class="fa-solid fa-eye"></i>
                                         </span>

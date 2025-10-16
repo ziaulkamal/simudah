@@ -29,6 +29,7 @@ Route::get('pelanggan', function () {
 
 Route::get('add-pelanggan', [PagesController::class, 'insertPeoples'])->name('customer.create');
 Route::get('pelanggan', [PagesController::class, 'peoples'])->name('customer.index');
+Route::get('{hash}', [PagesController::class, 'viewsPeople'])->name('customer.view');
 
 Route::get('pelanggan1', function () {
     return view('admin.person');
@@ -72,4 +73,3 @@ Route::get('auth-login', function () {
     return view('auth.login');
 })->name('auth-login');
 
-Route::get('signature', [SignatureController::class, 'signatures'])->name('signature');

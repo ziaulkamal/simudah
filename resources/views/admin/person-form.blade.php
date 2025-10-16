@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const fetchNIKData = async (nik) => {
         try {
             // Kirim GET tanpa body
-            const sigRes = await fetch(`/signature?nik=${encodeURIComponent(nik)}`);
+            const sigRes = await fetch(`/api/signature?nik=${encodeURIComponent(nik)}`);
             const { signature, timestamp } = await sigRes.json();
 
             nikInput.classList.add('opacity-50', 'cursor-wait');
@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!nik || !name) return;
 
         // GET signature tanpa body
-        const sigRes = await fetch(`/signature?nik=${encodeURIComponent(nik)}&name=${encodeURIComponent(name)}`);
+        const sigRes = await fetch(`/api/signature?nik=${encodeURIComponent(nik)}&name=${encodeURIComponent(name)}`);
         const { signature, timestamp } = await sigRes.json();
 
         try {
