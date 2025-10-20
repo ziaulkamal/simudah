@@ -142,10 +142,10 @@
                     return;
                 }
                 try {
-                    const res = await fetch(`/villages/${this.selectedDistrict}`);
+                    const res = await fetch(`/api/villages/${this.selectedDistrict}`);
                     const data = await res.json();
                     // Konversi data menjadi array objek {id, name}
-                    this.villages = Object.entries(data).map(([name, id]) => ({
+                    this.villages = Object.entries(data).map(([id, name]) => ({
                         id,
                         name
                     }));

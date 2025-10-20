@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
-            console.log('Search API Response:', data);
+            // console.log('Search API Response:', data);
             document.dispatchEvent(new CustomEvent('updateWilayah', { detail: data }));
         } catch (err) {
             console.error(err);
