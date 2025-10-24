@@ -129,71 +129,150 @@
 </main>
 @endsection
 
+
 @push('scripts')
+{{-- ✅ Modal Notifikasi Global --}}
+<div
+  x-data="{ open: false, type: 'info', title: '', message: '' }"
+  x-on:show-alert.window="
+      open = true;
+      type = $event.detail.type;
+      title = $event.detail.title;
+      message = $event.detail.message;
+  "
+  x-show="open"
+  x-transition
+  class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm"
+  x-cloak
+>
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md p-6">
+    <!-- Judul -->
+    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3 mb-4">
+      <h3
+        class="text-lg font-semibold"
+        :class="{
+          'text-green-600': type === 'success',
+          'text-red-600': type === 'error',
+          'text-yellow-600': type === 'warning',
+          'text-blue-600': type === 'info'
+        }"
+        x-text="title"
+      ></h3>
+
+      <button
+        @click="open = false"
+        class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Pesan -->
+    <p class="text-slate-700 dark:text-slate-200" x-text="message"></p>
+
+    <!-- Tombol OK -->
+    <div class="mt-6 text-right">
+      <button
+        @click="open = false"
+        class="btn rounded-lg bg-primary text-white hover:bg-primary-focus focus:bg-primary-focus active:bg-primary-focus/90"
+      >
+        OK
+      </button>
+    </div>
+  </div>
+</div>
 <script>
 function peopleForm(id = null) {
     return {
         loading: false,
+
         async submitForm(event) {
             this.loading = true;
 
             const form = event.target;
             const formData = new FormData(form);
 
-            // Convert FormData ke JSON
+            // Konversi FormData ke JSON
             let object = {};
-            formData.forEach((value, key) => object[key] = value);
+            formData.forEach((value, key) => (object[key] = value));
             const jsonData = JSON.stringify(object);
 
-            // Ambil method yang sebenarnya (_method atau form.method)
+            // Tentukan method & URL
             let method = form.querySelector('input[name="_method"]')?.value || form.method;
             method = method.toUpperCase();
-
-            // Jika update, pastikan URL termasuk ID
             let url = form.action;
-            if (method === 'PUT' && id) {
-                url = `/api/people/${id}`;
-            }
+            if (method === 'PUT' && id) url = `/api/people/${id}`;
 
             try {
                 const response = await fetch(url, {
-                    method: method,
+                    method,
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
                     },
-                    body: jsonData
+                    body: jsonData,
                 });
 
+                // Cek konten respons
                 const contentType = response.headers.get('content-type') || '';
-                if (!contentType.includes('application/json')) {
-                    const text = await response.text();
-                    console.error('Bukan JSON:', text);
-                    alert('Terjadi kesalahan server');
+                const data = contentType.includes('application/json')
+                    ? await response.json()
+                    : { message: await response.text() };
+
+                // --- ✅ Respons sukses ---
+                if (response.ok) {
+                    window.dispatchEvent(new CustomEvent('show-alert', {
+                        detail: {
+                            type: 'success',
+                            title: 'Berhasil Disimpan',
+                            message: data.message || 'Data pelanggan berhasil disimpan.',
+                        },
+                    }));
+
+                    if (method === 'POST') form.reset();
                     return;
                 }
 
-                if (!response.ok) {
-                    const errData = await response.json();
-                    console.error(errData);
-                    alert('Terjadi kesalahan saat menyimpan data');
+                // --- ⚠️ Validasi error ---
+                if (response.status === 422 && data.errors) {
+                    const firstError = Object.values(data.errors)[0]?.[0] || 'Periksa kembali isian Anda.';
+                    window.dispatchEvent(new CustomEvent('show-alert', {
+                        detail: {
+                            type: 'warning',
+                            title: 'Validasi Gagal',
+                            message: firstError,
+                        },
+                    }));
                     return;
                 }
 
-                const data = await response.json();
-                console.log('Data tersimpan:', data);
-                alert('Data berhasil disimpan!');
+                // --- ❌ Error lain ---
+                window.dispatchEvent(new CustomEvent('show-alert', {
+                    detail: {
+                        type: 'error',
+                        title: 'Gagal Menyimpan',
+                        message: data.message || 'Terjadi kesalahan saat menyimpan data.',
+                    },
+                }));
+
             } catch (error) {
                 console.error(error);
-                alert('Terjadi kesalahan jaringan.');
+                window.dispatchEvent(new CustomEvent('show-alert', {
+                    detail: {
+                        type: 'error',
+                        title: 'Kesalahan Jaringan',
+                        message: 'Tidak dapat terhubung ke server. Coba lagi nanti.',
+                    },
+                }));
             } finally {
                 this.loading = false;
             }
-        }
-    }
+        },
+    };
 }
 </script>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -318,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const value = nikInput.value;
         clearTimeout(debounceTimer);
         if (/^\d{16}$/.test(value)) {
-            debounceTimer = setTimeout(() => fetchNIKData(value), 500);
+            debounceTimer = setTimeout(() => fetchNIKData(value), 1000);
         } else {
             resetFormOnInvalidNik();
         }

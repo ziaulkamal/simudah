@@ -37,6 +37,7 @@ return new class extends Migration
 
             // Foreign key ke roles
             $table->foreignId('role_id')
+                ->nullable()
                 ->constrained('roles')
                 ->restrictOnDelete();
 

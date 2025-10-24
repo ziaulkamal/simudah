@@ -4,14 +4,15 @@
     </h2>
 
     {{-- Search & Toggle --}}
-    <form method="GET" class="flex items-center space-x-2">
+    <form method="GET" action="{{ $action }}" class="flex items-center space-x-2">
         <div class="flex items-center" x-data="{isInputActive:false}">
             <label class="block">
                 <input name="search" value="{{ request('search') }}"
-                    x-effect="isInputActive === true && $nextTick(() => { $el.focus()});"
+                    x-effect="isInputActive === true && $nextTick(() => { $el.focus() });"
                     :class="isInputActive ? 'w-32 lg:w-48' : 'w-0'"
                     class="form-input bg-transparent px-1 text-right transition-all duration-100 placeholder:text-slate-500 dark:placeholder:text-navy-200"
-                    placeholder="Cari..." type="text" />
+                    placeholder="Cari nama pelanggan..." type="text"
+                    @keyup.enter="$root.querySelector('form').submit()" />
             </label>
             <button type="button" @click="isInputActive = !isInputActive"
                 class="btn size-8 rounded-full p-0 hover:bg-slate-300/20">

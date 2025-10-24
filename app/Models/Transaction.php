@@ -18,7 +18,13 @@ class Transaction extends Model
         'year',
         'amount',
         'status',
-        'paid_at'
+        'paid_at',
+        'due_date',
+    ];
+
+    protected $casts = [
+        'paid_at' => 'datetime',
+        'due_date' => 'datetime',
     ];
 
     public function people()
@@ -34,5 +40,14 @@ class Transaction extends Model
     public function role()
     {
         return $this->belongsTo(Role::class);
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($trx) {
+            if (empty($trx->transaction_code)) {
+                $trx->transaction_code = 'TRX-' . strtoupper(uniqid());
+            }
+        });
     }
 }

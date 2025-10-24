@@ -8,6 +8,7 @@ use App\Models\Kemendagri\Provinces;
 use App\Models\Kemendagri\Regencies;
 use App\Models\Kemendagri\Villages;
 use App\Models\PeopleDocument;
+use App\Models\PeopleLocation;
 use App\Models\Role;
 use App\Models\Transaction;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -141,5 +142,15 @@ class People extends Model
     public function village()
     {
         return $this->belongsTo(Villages::class, 'villageId');
+    }
+
+    public function location()
+    {
+        return $this->hasOne(PeopleLocation::class, 'people_id', 'id');
+    }
+
+    public function categoryHistories()
+    {
+        return $this->hasMany(PeopleCategoryHistory::class)->with('category')->orderBy('created_at', 'desc');
     }
 }

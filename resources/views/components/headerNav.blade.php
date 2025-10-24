@@ -81,7 +81,7 @@
                                     x-transition:enter-end="opacity-100 [transform:translate3d(0,0,0)]"
                                     class="is-scrollbar-hidden overflow-y-auto px-4">
                                     <div class="mt-8 pb-8 text-center">
-                                        <img class="mx-auto w-36" src="images/illustrations/empty-girl-box.svg"
+                                        <img class="mx-auto w-36" src="{{ asset('images/illustrations/empty-girl-box.svg') }}"
                                             alt="image" />
                                         <div class="mt-5">
                                             <p class="text-base font-semibold text-slate-700 dark:text-navy-100">

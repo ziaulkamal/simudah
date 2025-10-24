@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class PeopleDocument extends Model
 {
     use HasFactory;
+
     protected $table = 'people_documents';
 
     protected $fillable = [
@@ -16,6 +17,13 @@ class PeopleDocument extends Model
         'document_type',
         'file_path',
         'status',
+        'latitude',
+        'longitude',
+    ];
+
+    protected $casts = [
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
 
     public function people()

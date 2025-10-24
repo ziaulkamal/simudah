@@ -13,6 +13,7 @@
     @else
         <span class="relative mt-1.5 flex">
             <input
+
                 name="{{ $name }}"
                 type="{{ $type }}"
                 value="{{ old($name, $value) }}"

@@ -2,28 +2,32 @@
 
 namespace App\View\Components;
 
-use Closure;
-use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
+use Illuminate\Contracts\View\View;
+use Closure;
 
 class BreadcrumbHeader extends Component
 {
-    /**
-     * Create a new component instance.
-     */
-
     public $title;
     public $submenu;
+    public $routeName;
+    public $routeLabel;
+    public $menuItems;
 
-    public function __construct($title = null, $submenu = null)
-    {
+    public function __construct(
+        $title = null,
+        $submenu = null,
+        $routeName = 'dashboard',
+        $routeLabel = 'Dashboard',
+        $menuItems = []
+    ) {
         $this->title = $title;
         $this->submenu = $submenu;
+        $this->routeName = $routeName;
+        $this->routeLabel = $routeLabel;
+        $this->menuItems = $menuItems;
     }
 
-    /**
-     * Get the view / contents that represent the component.
-     */
     public function render(): View|Closure|string
     {
         return view('components.breadcrumb-header');

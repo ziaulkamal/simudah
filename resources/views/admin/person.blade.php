@@ -32,7 +32,9 @@
             <!-- Kecamatan & Desa -->
             <label class="block" x-data="districtVillage()">
                 <span>Kecamatan:</span>
-                <select x-model="selectedDistrict" name="district_id" class="form-select mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 hover:border-slate-400 focus:border-primary">
+                <select x-model="selectedDistrict" name="district_id"
+                    class="form-select mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 hover:border-slate-400 focus:border-primary"
+                    @change="loadVillages()">
                     <option value="">Semua</option>
                     @foreach ($districts as $district)
                     <option value="{{ $district->id }}" @selected(request('district_id')==$district->id)>
@@ -42,10 +44,11 @@
                 </select>
 
                 <span class="mt-4 block">Desa:</span>
-                <select x-model="selectedVillage" name="village_id" class="form-select mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 hover:border-slate-400 focus:border-primary">
+                <select x-model="selectedVillage" name="village_id"
+                    class="form-select mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 hover:border-slate-400 focus:border-primary">
                     <option value="">Semua</option>
                     <template x-for="village in villages" :key="village.id">
-                        <option :value="village.id" x-text="village.name" :selected="village.id == '{{ request('village_id') }}'"></option>
+                        <option :value="village.id" x-text="village.name"></option>
                     </template>
                 </select>
             </label>
@@ -80,7 +83,7 @@
                                 </td>
                                 <td
                                     class="px-4 py-3 font-medium text-slate-700 dark:text-navy-50 hover:text-primary dark:hover:text-accent">
-                                    {{ $person->fullName }}
+                                    {{ strtoupper($person->fullName) }}
                                 </td>
                                 <td class="px-4 py-3">
                                     {{ $person->streetAddress }}
@@ -130,38 +133,31 @@
 </main>
 @endsection
 
+@push('scripts')
 <script>
-    function districtVillage() {
-        return {
-            selectedDistrict: "{{ request('district_id') }}",
-            selectedVillage: "{{ request('village_id') }}",
-            villages: [],
-            async fetchVillages() {
-                if (!this.selectedDistrict) {
-                    this.villages = [];
-                    return;
-                }
-                try {
-                    const res = await fetch(`/api/villages/${this.selectedDistrict}`);
-                    const data = await res.json();
-                    // Konversi data menjadi array objek {id, name}
-                    this.villages = Object.entries(data).map(([id, name]) => ({
-                        id,
-                        name
-                    }));
-                } catch (e) {
-                    this.villages = [];
-                }
-            },
-            init() {
-                if (this.selectedDistrict) {
-                    this.fetchVillages();
-                }
-                this.$watch('selectedDistrict', () => {
-                    this.selectedVillage = ''; // Reset pilihan desa saat kecamatan berubah
-                    this.fetchVillages();
-                });
+function districtVillage() {
+    return {
+        selectedDistrict: '{{ request('district_id') ?? '' }}',
+        selectedVillage: '{{ request('village_id') ?? '' }}',
+        villages: @json($villages ?? []),
+
+        loadVillages() {
+            this.selectedVillage = '';
+            if (!this.selectedDistrict) {
+                this.villages = [];
+                return;
             }
+
+            fetch(`/api/villages/${this.selectedDistrict}`)
+            .then(res => res.json())
+            .then(data => {
+                // data = {1: "Desa A", 2: "Desa B"}
+                this.villages = Object.entries(data).map(([id, name]) => ({ id, name }));
+            })
+            .catch(err => console.error(err));
         }
     }
+}
+
 </script>
+@endpush
