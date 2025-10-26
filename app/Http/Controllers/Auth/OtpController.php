@@ -8,6 +8,8 @@ use App\Models\People;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
+use App\Models\OtpLog;
 
 class OtpController extends Controller
 {
@@ -16,16 +18,12 @@ class OtpController extends Controller
      */
     public function sendOtp(Request $request)
     {
-        // Validasi input
         $request->validate([
             'nik' => 'required|string',
             'wa'  => 'required|string',
         ]);
 
-        // Generate hash NIK
         $identityHash = People::generateHmac($request->nik);
-
-        // Normalisasi nomor HP
         $normalizedWa = $this->normalizePhone($request->wa);
 
         // Cari user berdasarkan NIK dan variasi nomor WA
@@ -37,11 +35,14 @@ class OtpController extends Controller
             })
             ->first();
 
+        // ❌ Jika tidak ditemukan
         if (!$person) {
-            Log::warning('OTP gagal dikirim: NIK/WA tidak ditemukan', [
+            OtpLog::create([
                 'nik' => $request->nik,
-                'wa_input' => $request->wa,
-                'wa_normalized' => $normalizedWa,
+                'phone' => $request->wa,
+                'status' => 'not_found',
+                'message' => 'NIK atau nomor WhatsApp tidak ditemukan',
+                'ip' => $request->ip(),
             ]);
 
             return response()->json([
@@ -50,32 +51,70 @@ class OtpController extends Controller
             ], 404);
         }
 
-        // Generate OTP 5 digit
-        $otp = rand(10000, 99999);
+        $phone = $person->phoneNumber;
 
-        // Simpan OTP di cache selama 5 menit
-        Cache::put('otp_' . $person->id, $otp, now()->addMinutes(5));
+        // 🔒 Anti-Spam (pakai nomor HP sebagai key)
+        $attemptKey = 'otp_attempts_' . $phone;
+        $blockedKey = 'otp_blocked_' . $phone;
 
-        // Log keberhasilan
-        Log::info('OTP berhasil dikirim', [
-            'person_id' => $person->id,
-            'nama' => $person->name ?? '-',
-            'nik' => $request->nik,
-            'phoneNumber_db' => $person->phoneNumber,
-            'wa_input' => $request->wa,
-            'wa_normalized' => $normalizedWa,
+        if (Cache::has($blockedKey)) {
+            OtpLog::create([
+                'nik' => $request->nik,
+                'phone' => $phone,
+                'status' => 'blocked',
+                'message' => 'Diblokir sementara selama 30 menit',
+                'ip' => $request->ip(),
+            ]);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Terlalu banyak percobaan OTP. Silakan coba lagi dalam 30 menit.'
+            ], 429);
+        }
+
+        $attempts = Cache::get($attemptKey, 0) + 1;
+        Cache::put($attemptKey, $attempts, now()->addMinutes(30));
+
+        if ($attempts > 10) {
+            Cache::put($blockedKey, now()->addMinutes(30), now()->addMinutes(30));
+            Cache::forget($attemptKey);
+
+            OtpLog::create([
+                'nik' => $request->nik,
+                'phone' => $phone,
+                'status' => 'blocked',
+                'message' => 'Melebihi batas 10x permintaan dalam 30 menit',
+                'ip' => $request->ip(),
+            ]);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Terlalu banyak percobaan OTP. Akun Anda diblokir selama 30 menit.'
+            ], 429);
+        }
+
+        // 🔢 Gunakan OTP lama jika masih valid
+        $otp = Cache::remember('otp_' . $phone, now()->addMinutes(5), function () {
+            return rand(10000, 99999);
+        });
+
+        // Kirim OTP via WhatsApp
+        $success = $this->pushWhatsApp($otp, $phone);
+
+        // 🧾 Catat ke tabel otp_logs
+        OtpLog::create([
+            'phone' => $phone,
             'otp' => $otp,
-            'expired_at' => now()->addMinutes(5)->toDateTimeString(),
+            'status' => $success ? 'success' : 'error',
+            'message' => $success ? 'OTP terkirim ke WhatsApp' : 'Gagal mengirim OTP ke WhatsApp',
+            'ip' => $request->ip(),
         ]);
-
-        // TODO: Kirim OTP ke WA user (integrasi API WhatsApp)
-        // WhatsAppApi::send($person->phoneNumber, "Kode OTP Anda: $otp");
 
         return response()->json([
             'status'     => 'success',
             'message'    => 'OTP berhasil dikirim',
-            'person_id'  => $person->id,
-            // 'otp_masked' => substr($otp, 0, 2) . '***' // tidak menampilkan OTP full ke user
+            'phone'      => $phone,
+            'attempts'   => $attempts,
         ]);
     }
 
@@ -147,5 +186,59 @@ class OtpController extends Controller
         }
 
         return $phone;
+    }
+
+    private function pushWhatsApp($otp, $phoneNumber)
+    {
+        try {
+            // Normalisasi nomor ke format internasional (misal: 628123456789)
+            $normalized = preg_replace('/[^0-9]/', '', $phoneNumber);
+            if (str_starts_with($normalized, '0')) {
+                $normalized = '62' . substr($normalized, 1);
+            }
+
+            // Format chatId sesuai API (contoh: 628123456789@c.us)
+            $chatId = $normalized . '@c.us';
+
+            // Pesan OTP
+            $text = "🔐 Kode OTP Anda adalah *{$otp}*.\n\nJangan berikan kode ini kepada siapa pun. Berlaku selama 5 menit.";
+
+            // Panggil API WhatsApp
+            $response = Http::withHeaders([
+                'accept' => 'application/json',
+                'X-Api-Key' => env('WA_API_KEY', 'c386cfb98aed431787816f6b957df354'),
+                'Content-Type' => 'application/json',
+            ])->post(env('WA_GATEWAY_URL', 'http://wagateway:3000/api/sendText'), [
+                'chatId' => $chatId,
+                'reply_to' => null,
+                'text' => $text,
+                'linkPreview' => false,
+                'linkPreviewHighQuality' => false,
+                'session' => 'default',
+            ]);
+
+            if ($response->successful()) {
+                Log::info('OTP terkirim ke WhatsApp', [
+                    'phone' => $phoneNumber,
+                    'chatId' => $chatId,
+                    'otp' => $otp,
+                ]);
+                return true;
+            } else {
+                Log::error('Gagal mengirim OTP ke WhatsApp', [
+                    'phone' => $phoneNumber,
+                    'chatId' => $chatId,
+                    'otp' => $otp,
+                    'response' => $response->body(),
+                ]);
+                return false;
+            }
+        } catch (\Throwable $e) {
+            Log::error('pushWhatsApp error', [
+                'message' => $e->getMessage(),
+                'phone' => $phoneNumber,
+            ]);
+            return false;
+        }
     }
 }

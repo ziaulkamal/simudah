@@ -6,10 +6,12 @@
     <main class="grid w-full grow grid-cols-1 place-items-center">
         <div class="w-full max-w-[26rem] p-4 sm:px-5">
             <div class="text-center">
-                <img class="mx-auto size-16" src="images/app-logo.svg" alt="logo" />
+                <img class="mx-auto size-16" src="{{ asset('images/logo-simudah.png') }}" alt="logo" />
                 <div class="mt-4">
-                    <h2 class="text-2xl font-semibold text-slate-600 dark:text-navy-100">SiMudah</h2>
-                    <p class="text-slate-400 dark:text-navy-300">Sistem Informasi Manajemen Persampahan Mudah & Terarah</p>
+                    <h2 class="text-2xl font-semibold text-slate-600 dark:text-navy-100">SIMUDAH</h2>
+                    <p class="mt-2 text-base text-slate-500 dark:text-slate-300" >
+                        Sistem Informasi Manajemen Persampahan <span class="text-green-600 font-medium">Mudah</span> &amp; <span class="text-teal-500 font-medium">Terarah</span>
+                    </p>
                 </div>
             </div>
 
