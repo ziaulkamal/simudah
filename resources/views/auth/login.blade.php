@@ -115,7 +115,7 @@
                         <div class="text-center text-xs-plus mt-3">
                             <p>
                                 <span>Belum Punya akun ? </span>
-                                <a class="text-primary hover:text-primary-focus dark:text-accent-light dark:hover:text-accent" href="#">
+                                <a class="text-primary hover:text-primary-focus dark:text-accent-light dark:hover:text-accent" href="{{ route('register.form') }}">
                                     Daftar Sebagai Pelanggan
                                 </a>
                             </p>
