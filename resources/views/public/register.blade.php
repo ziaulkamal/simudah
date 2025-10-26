@@ -126,7 +126,7 @@
       <template x-if="!preview">
         <div class="flex flex-col items-center space-y-3">
           <button type="button" @click="$refs.ktpInput.click()"
-            class="btn bg-fuchsia-700 text-white hover:bg-fuchsia-800 focus:ring-2 focus:ring-fuchsia-500 rounded-lg px-4 py-2">
+            class="btn border border-primary font-medium text-primary hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary/90 dark:border-accent dark:text-accent-light dark:hover:bg-accent dark:hover:text-white dark:focus:bg-accent dark:focus:text-white dark:active:bg-accent/90">
             📁 Upload KTP
           </button>
           <p class="text-sm text-slate-500">atau</p>
@@ -168,7 +168,7 @@
             Nanti Saja
           </button>
           <button @click="grantPermission"
-            class="px-4 py-2 rounded-lg bg-fuchsia-700 text-white hover:bg-fuchsia-800">
+            class="btn border border-primary font-medium text-primary hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary/90 dark:border-accent dark:text-accent-light dark:hover:bg-accent dark:hover:text-white dark:focus:bg-accent dark:focus:text-white dark:active:bg-accent/90">
             Izinkan
           </button>
         </div>
@@ -193,7 +193,7 @@
             class="px-4 py-2 rounded-lg border border-slate-300 dark:border-navy-600 text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-700">
             Batal
           </button>
-          <button @click="takePhoto" class="px-4 py-2 rounded-lg bg-fuchsia-700 text-white hover:bg-fuchsia-800">
+          <button @click="takePhoto" class="btn border border-secondary font-medium text-secondary hover:bg-secondary hover:text-white focus:bg-secondary focus:text-white active:bg-secondary/90 dark:text-secondary-light dark:hover:bg-secondary dark:hover:text-white dark:focus:bg-secondary dark:focus:text-white dark:active:bg-secondary/90">
             Ambil Foto
           </button>
         </div>
@@ -221,7 +221,7 @@
             class="px-4 py-2 rounded-lg border border-slate-300 dark:border-navy-600 text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-700">
             Batal
           </button>
-          <button @click="saveCrop" class="px-4 py-2 rounded-lg bg-fuchsia-700 text-white hover:bg-fuchsia-800">
+          <button @click="saveCrop" class="btn border border-secondary font-medium text-secondary hover:bg-secondary hover:text-white focus:bg-secondary focus:text-white active:bg-secondary/90 dark:text-secondary-light dark:hover:bg-secondary dark:hover:text-white dark:focus:bg-secondary dark:focus:text-white dark:active:bg-secondary/90">
             Simpan
           </button>
         </div>
