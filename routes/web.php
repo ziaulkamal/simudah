@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\MendagriController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PeopleController;
+use App\Http\Controllers\SelfRegistrationController;
 use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\SystemLogController;
 use Illuminate\Support\Facades\Route;
+
 
 
 
@@ -54,4 +56,10 @@ Route::post('/login', [LoginController::class, 'login'])->name('login');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/me', [LoginController::class, 'me'])->name('me');
 Route::get('/system-logs', [SystemLogController::class, 'index'])->name('system-logs.index');
+
+Route::get('/register', [SelfRegistrationController::class, 'showForm'])->name('register.form');
+Route::post('/register', [SelfRegistrationController::class, 'submitForm'])->name('register.submit');
+
+Route::get('/verify-otp/{id}', [SelfRegistrationController::class, 'showVerify'])->name('register.verify');
+Route::post('/verify-otp/{id}', [SelfRegistrationController::class, 'verifyOtp'])->name('register.verify.submit');
 
