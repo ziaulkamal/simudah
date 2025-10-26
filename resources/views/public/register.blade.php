@@ -75,6 +75,7 @@
                             type="tel"
                             placeholder="Masukkan NIK"
                             x-model="form.nik"
+                            name="identityNumber"
                             @input="form.nik = form.nik.replace(/[^0-9]/g, '').slice(0,16)"
                             maxlength="16"
                             class="form-input mt-1.5 w-full rounded-lg bg-slate-150 px-3 py-2 ring-primary/50
@@ -94,6 +95,7 @@
                             x-model="form.phone"
                             @input="form.phone = form.phone.replace(/[^0-9]/g, '').slice(0,13)"
                             maxlength="13"
+                            name="phoneNumber"
                             class="form-input mt-1.5 w-full rounded-lg bg-slate-150 px-3 py-2 ring-primary/50
                             placeholder:text-slate-400 hover:bg-slate-200 focus:ring-2
                             dark:bg-navy-900 dark:ring-accent/50 dark:placeholder:text-navy-300
@@ -103,132 +105,132 @@
                         <p class="text-xs text-slate-500 mt-1" x-text="form.phone.length + '/13 angka'"></p>
                     </label>
 
-<div x-data="ktpCropper()" class="space-y-4">
-  <label class="block">
-    <span class="text-slate-700 dark:text-slate-100">Upload atau Foto KTP</span>
+                    <div x-data="ktpCropper()" class="space-y-4">
+                    <label class="block">
+                        <span class="text-slate-700 dark:text-slate-100">Upload atau Foto KTP</span>
 
-    <div
-      class="relative mt-3 border-2 border-dashed border-slate-300 dark:border-navy-500 rounded-xl p-5 flex flex-col items-center justify-center bg-slate-50 dark:bg-navy-800/40 hover:border-fuchsia-500 transition duration-300 ease-in-out">
+                        <div
+                        class="relative mt-3 border-2 border-dashed border-slate-300 dark:border-navy-500 rounded-xl p-5 flex flex-col items-center justify-center bg-slate-50 dark:bg-navy-800/40 hover:border-fuchsia-500 transition duration-300 ease-in-out">
 
-      <!-- PREVIEW -->
-      <template x-if="preview">
-        <div class="relative mb-3">
-          <img :src="preview" alt="Preview KTP"
-            class="w-80 md:w-96 aspect-[1.585] object-cover rounded-lg border border-slate-200 dark:border-navy-600 shadow-lg" />
-          <button type="button" @click="removeFile"
-            class="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5 hover:bg-red-700 shadow">
-            ✕
-          </button>
-        </div>
-      </template>
+                        <!-- PREVIEW -->
+                        <template x-if="preview">
+                            <div class="relative mb-3">
+                            <img :src="preview" alt="Preview KTP"
+                                class="w-80 md:w-96 aspect-[1.585] object-cover rounded-lg border border-slate-200 dark:border-navy-600 shadow-lg" />
+                            <button type="button" @click="removeFile"
+                                class="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5 hover:bg-red-700 shadow">
+                                ✕
+                            </button>
+                            </div>
+                        </template>
 
-      <!-- BUTTONS -->
-      <template x-if="!preview">
-        <div class="flex flex-col items-center space-y-3">
-          <button type="button" @click="$refs.ktpInput.click()"
-            class="btn border border-primary font-medium text-primary hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary/90 dark:border-accent dark:text-accent-light dark:hover:bg-accent dark:hover:text-white dark:focus:bg-accent dark:focus:text-white dark:active:bg-accent/90">
-            📁 Upload KTP
-          </button>
-          {{-- <p class="text-sm text-slate-500">atau</p>
-          <button type="button" @click="openPermissionModal"
-            class="btn border border-fuchsia-700 text-fuchsia-700 hover:bg-fuchsia-50 dark:hover:bg-navy-700 rounded-lg px-4 py-2">
-            📸 Ambil Foto KTP
-          </button> --}}
-        </div>
-      </template>
+                        <!-- BUTTONS -->
+                        <template x-if="!preview">
+                            <div class="flex flex-col items-center space-y-3">
+                            <button type="button" @click="$refs.ktpInput.click()"
+                                class="btn border border-primary font-medium text-primary hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary/90 dark:border-accent dark:text-accent-light dark:hover:bg-accent dark:hover:text-white dark:focus:bg-accent dark:focus:text-white dark:active:bg-accent/90">
+                                📁 Upload KTP
+                            </button>
+                            {{-- <p class="text-sm text-slate-500">atau</p>
+                            <button type="button" @click="openPermissionModal"
+                                class="btn border border-fuchsia-700 text-fuchsia-700 hover:bg-fuchsia-50 dark:hover:bg-navy-700 rounded-lg px-4 py-2">
+                                📸 Ambil Foto KTP
+                            </button> --}}
+                            </div>
+                        </template>
 
-      <input type="file" name="ktp_file" x-ref="ktpInput" accept="image/*" @change="handleFile($event)" class="hidden"
-        required />
-    </div>
-    <p class="text-xs text-slate-500 mt-2" x-show="fileName" x-text="'File: ' + fileName"></p>
-  </label>
+                        <input type="file" name="ktp_file" x-ref="ktpInput" accept="image/*" @change="handleFile($event)" class="hidden"
+                            required />
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2" x-show="fileName" x-text="'File: ' + fileName"></p>
+                    </label>
 
-  <!-- MODAL IZIN AKSES KAMERA -->
-  {{-- <template x-if="showPermission">
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div
-        class="bg-white dark:bg-navy-800 rounded-2xl shadow-2xl w-full max-w-md p-6 text-center animate-fade-in-up transition">
-        <div class="mb-4">
-          <div
-            class="w-14 h-14 rounded-full bg-gradient-to-r from-fuchsia-600 to-indigo-500 flex items-center justify-center mx-auto mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 11c0-1.104.896-2 2-2h8a2 2 0 012 2v8a2 2 0 01-2 2h-8a2 2 0 01-2-2v-8zM6 15l-3 3m0 0l3-3m-3 3V9a2 2 0 012-2h4" />
-            </svg>
-          </div>
-          <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-1">Izinkan Akses Kamera</h2>
-          <p class="text-sm text-slate-500 dark:text-navy-300">
-            Aplikasi membutuhkan izin kamera untuk mengambil foto KTP secara langsung.
-          </p>
-        </div>
-        <div class="flex justify-center gap-3 mt-5">
-          <button @click="denyPermission"
-            class="px-4 py-2 rounded-lg border border-slate-300 dark:border-navy-600 text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-700">
-            Nanti Saja
-          </button>
-          <button @click="grantPermission"
-            class="btn border border-primary font-medium text-primary hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary/90 dark:border-accent dark:text-accent-light dark:hover:bg-accent dark:hover:text-white dark:focus:bg-accent dark:focus:text-white dark:active:bg-accent/90">
-            Izinkan
-          </button>
-        </div>
-      </div>
-    </div>
-  </template> --}}
+                    <!-- MODAL IZIN AKSES KAMERA -->
+                    {{-- <template x-if="showPermission">
+                        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                        <div
+                            class="bg-white dark:bg-navy-800 rounded-2xl shadow-2xl w-full max-w-md p-6 text-center animate-fade-in-up transition">
+                            <div class="mb-4">
+                            <div
+                                class="w-14 h-14 rounded-full bg-gradient-to-r from-fuchsia-600 to-indigo-500 flex items-center justify-center mx-auto mb-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 11c0-1.104.896-2 2-2h8a2 2 0 012 2v8a2 2 0 01-2 2h-8a2 2 0 01-2-2v-8zM6 15l-3 3m0 0l3-3m-3 3V9a2 2 0 012-2h4" />
+                                </svg>
+                            </div>
+                            <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-1">Izinkan Akses Kamera</h2>
+                            <p class="text-sm text-slate-500 dark:text-navy-300">
+                                Aplikasi membutuhkan izin kamera untuk mengambil foto KTP secara langsung.
+                            </p>
+                            </div>
+                            <div class="flex justify-center gap-3 mt-5">
+                            <button @click="denyPermission"
+                                class="px-4 py-2 rounded-lg border border-slate-300 dark:border-navy-600 text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-700">
+                                Nanti Saja
+                            </button>
+                            <button @click="grantPermission"
+                                class="btn border border-primary font-medium text-primary hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary/90 dark:border-accent dark:text-accent-light dark:hover:bg-accent dark:hover:text-white dark:focus:bg-accent dark:focus:text-white dark:active:bg-accent/90">
+                                Izinkan
+                            </button>
+                            </div>
+                        </div>
+                        </div>
+                    </template> --}}
 
-  <!-- MODAL CAMERA -->
-  {{-- <template x-if="showCamera">
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div
-        class="bg-white dark:bg-navy-800 rounded-2xl shadow-2xl p-5 w-full max-w-lg flex flex-col items-center space-y-3">
-        <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-100 mb-2">
-          Ambil Foto KTP
-        </h2>
+                    <!-- MODAL CAMERA -->
+                    {{-- <template x-if="showCamera">
+                        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+                        <div
+                            class="bg-white dark:bg-navy-800 rounded-2xl shadow-2xl p-5 w-full max-w-lg flex flex-col items-center space-y-3">
+                            <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-100 mb-2">
+                            Ambil Foto KTP
+                            </h2>
 
-        <video x-ref="video" autoplay playsinline
-          class="w-full aspect-[1.585] rounded-xl object-cover border border-slate-300 dark:border-navy-600"></video>
+                            <video x-ref="video" autoplay playsinline
+                            class="w-full aspect-[1.585] rounded-xl object-cover border border-slate-300 dark:border-navy-600"></video>
 
-        <div class="flex gap-3 mt-3">
-          <button @click="cancelCamera"
-            class="px-4 py-2 rounded-lg border border-slate-300 dark:border-navy-600 text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-700">
-            Batal
-          </button>
-          <button @click="takePhoto" class="btn border border-secondary font-medium text-secondary hover:bg-secondary hover:text-white focus:bg-secondary focus:text-white active:bg-secondary/90 dark:text-secondary-light dark:hover:bg-secondary dark:hover:text-white dark:focus:bg-secondary dark:focus:text-white dark:active:bg-secondary/90">
-            Ambil Foto
-          </button>
-        </div>
-      </div>
-    </div>
-  </template> --}}
+                            <div class="flex gap-3 mt-3">
+                            <button @click="cancelCamera"
+                                class="px-4 py-2 rounded-lg border border-slate-300 dark:border-navy-600 text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-700">
+                                Batal
+                            </button>
+                            <button @click="takePhoto" class="btn border border-secondary font-medium text-secondary hover:bg-secondary hover:text-white focus:bg-secondary focus:text-white active:bg-secondary/90 dark:text-secondary-light dark:hover:bg-secondary dark:hover:text-white dark:focus:bg-secondary dark:focus:text-white dark:active:bg-secondary/90">
+                                Ambil Foto
+                            </button>
+                            </div>
+                        </div>
+                        </div>
+                    </template> --}}
 
-  <!-- MODAL CROP -->
-  <template x-if="showModal">
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      @click.self="cancelCrop">
-      <div
-        class="bg-white dark:bg-navy-800 rounded-2xl shadow-2xl p-5 w-full max-w-xl flex flex-col items-center animate-fade-in-up">
-        <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-100 mb-3">
-          Sesuaikan Foto KTP
-        </h2>
+                    <!-- MODAL CROP -->
+                    <template x-if="showModal">
+                        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+                        @click.self="cancelCrop">
+                        <div
+                            class="bg-white dark:bg-navy-800 rounded-2xl shadow-2xl p-5 w-full max-w-xl flex flex-col items-center animate-fade-in-up">
+                            <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-100 mb-3">
+                            Sesuaikan Foto KTP
+                            </h2>
 
-        <div
-          class="relative w-full md:w-[420px] aspect-[1.585] rounded-xl overflow-hidden border border-slate-300 dark:border-navy-600 bg-slate-100 dark:bg-navy-700">
-          <img x-ref="image" :src="tempImage" alt="Crop area" class="max-w-full block select-none" />
-        </div>
+                            <div
+                            class="relative w-full md:w-[420px] aspect-[1.585] rounded-xl overflow-hidden border border-slate-300 dark:border-navy-600 bg-slate-100 dark:bg-navy-700">
+                            <img x-ref="image" :src="tempImage" alt="Crop area" class="max-w-full block select-none" />
+                            </div>
 
-        <div class="flex justify-center gap-3 mt-5">
-          <button @click="cancelCrop"
-            class="px-4 py-2 rounded-lg border border-slate-300 dark:border-navy-600 text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-700">
-            Batal
-          </button>
-          <button @click="saveCrop" class="btn border border-secondary font-medium text-secondary hover:bg-secondary hover:text-white focus:bg-secondary focus:text-white active:bg-secondary/90 dark:text-secondary-light dark:hover:bg-secondary dark:hover:text-white dark:focus:bg-secondary dark:focus:text-white dark:active:bg-secondary/90">
-            Simpan
-          </button>
-        </div>
-      </div>
-    </div>
-  </template>
-</div>
+                            <div class="flex justify-center gap-3 mt-5">
+                            <button @click="cancelCrop"
+                                class="px-4 py-2 rounded-lg border border-slate-300 dark:border-navy-600 text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-700">
+                                Batal
+                            </button>
+                            <button @click="saveCrop" class="btn border border-secondary font-medium text-secondary hover:bg-secondary hover:text-white focus:bg-secondary focus:text-white active:bg-secondary/90 dark:text-secondary-light dark:hover:bg-secondary dark:hover:text-white dark:focus:bg-secondary dark:focus:text-white dark:active:bg-secondary/90">
+                                Simpan
+                            </button>
+                            </div>
+                        </div>
+                        </div>
+                    </template>
+                    </div>
 
                     <div class="flex justify-center space-x-2 pt-5">
                         <a href="{{ route('register.form') }}"
