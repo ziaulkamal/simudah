@@ -10,6 +10,8 @@ class TemporaryPeople extends Model
 {
     use HasFactory;
 
+    protected $table = 'temporary_peoples';
+
     protected $fillable = [
         'fullName',
         'identityNumber',

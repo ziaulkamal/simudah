@@ -10,6 +10,8 @@ class TemporaryPeopleDocument extends Model
 {
     use HasFactory;
 
+    protected $table = 'temporary_people_documents';
+
     protected $fillable = [
         'temporary_people_id',
         'type',
