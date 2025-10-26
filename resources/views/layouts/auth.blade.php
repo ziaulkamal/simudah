@@ -13,8 +13,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <link rel="icon" type="image/png" href="images/favicon.png" />
-    <link rel="stylesheet" href="{{ asset('dist/css/app.css') }}" />
-    <script src="{{ asset('dist/js/app.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}" />
+    <script src="{{ asset('build/assets/app.js') }}" defer></script>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

@@ -5,10 +5,10 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
-    <title>{{ $title ?? config('APP_NAME') }}</title>
+    <title>{{ $title ?? env('APP_NAME') }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}" />
-    <link rel="stylesheet" href="{{ asset('dist/css/app.css') }}" />
-    <script src="{{ asset('dist/js/app.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}" />
+    <script src="{{ asset('build/assets/app.js') }}" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
