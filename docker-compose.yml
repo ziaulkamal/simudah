@@ -36,17 +36,6 @@ services:
     networks:
       - simudah
 
-  ngrok:
-    image: wernight/ngrok
-    container_name: simudah-ngrok
-    depends_on:
-      - web
-    environment:
-      NGROK_PORT: web:80
-      NGROK_REGION: us
-    networks:
-      - simudah
-
 volumes:
   dbdata:
 
