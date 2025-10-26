@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'verify.app' => \App\Http\Middleware\VerifyAppAccess::class,
+            'check.session' => \App\Http\Middleware\CheckLoginSession::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

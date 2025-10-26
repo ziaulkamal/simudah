@@ -1,12 +1,18 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\MendagriController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\SecureUserController;
 use App\Http\Controllers\SignatureController;
+use App\Http\Controllers\SystemLogController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
+
+
+
 
 
 
@@ -51,5 +57,8 @@ Route::prefix('secure-users')->group(function () {
     Route::patch('{id}', [SecureUserController::class, 'update']);
     Route::delete('{id}', [SecureUserController::class, 'destroy']);
 });
+
+Route::get('/logs', [SystemLogController::class, 'index']);
+
 
 Route::get('signature', [SignatureController::class, 'signatures'])->name('signature');

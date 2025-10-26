@@ -43,16 +43,7 @@
                         </a>
                     </li>
 
-                    <li>
-                        <a x-data="navLink" href="{{ route('customer.download') }}"
-                            :class="isActive ? 'font-medium text-primary dark:text-accent-light' : 'text-slate-600 hover:text-slate-900 dark:text-navy-200 dark:hover:text-navy-50'"
-                            class="flex items-center justify-between p-2 text-xs-plus tracking-wide outline-hidden transition-[color,padding-left] duration-300 ease-in-out hover:pl-4">
-                            <div class="flex items-center space-x-2">
-                                <div class="size-1.5 rounded-full border border-current opacity-40"></div>
-                                <span>Unduh</span>
-                            </div>
-                        </a>
-                    </li>
+
                 </ul>
             </li>
 
@@ -92,7 +83,7 @@
                         </a>
                     </li>
 
-                    <li>
+                    {{-- <li>
                         <a x-data="navLink" href="{{ route('transaction.filter') }}"
                             :class="isActive ? 'font-medium text-primary dark:text-accent-light' : 'text-slate-600 hover:text-slate-900 dark:text-navy-200 dark:hover:text-navy-50'"
                             class="flex items-center justify-between p-2 text-xs-plus tracking-wide outline-hidden transition-[color,padding-left] duration-300 ease-in-out hover:pl-4">
@@ -101,7 +92,7 @@
                                 <span>Filter Data / Unduh</span>
                             </div>
                         </a>
-                    </li>
+                    </li> --}}
                 </ul>
             </li>
         </ul>

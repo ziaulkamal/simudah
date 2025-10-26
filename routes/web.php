@@ -1,11 +1,17 @@
 <?php
 
-use App\Http\Controllers\MendagriController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\MendagriController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\SignatureController;
+use App\Http\Controllers\SystemLogController;
 use Illuminate\Support\Facades\Route;
+
+
+
 
 // ✅ Rute wilayah dinamis
 
@@ -16,7 +22,7 @@ Route::get('/api/villages/{districtId}', [MendagriController::class, 'getVillage
 
 
 
-Route::get('/', [PagesController::class, 'dashboard'])->name('dashboard');
+Route::get('/', [PagesController::class, 'dashboard'])->name('dashboard')->middleware('check.session:1,2,3');
 Route::get('addons', [PagesController::class, 'addons'])->name('addons');
 
 Route::get('add-pelanggan', [PagesController::class, 'insertPeoples'])->name('customer.create');
@@ -34,48 +40,18 @@ Route::prefix('profile')->name('profile.')->group(function () {
     Route::get('/privacy', fn() => view('profile.privacy'))->name('privacy');
 });
 
-Route::get('pelanggan1', function () {
-    return view('admin.person');
-})->name('customer.create');
-Route::get('pelanggan2', function () {
-    return view('admin.person');
-})->name('customer.download');
-
 Route::get('transaksi', [PagesController::class, 'transaction'])->name('transaction.index');
-Route::get('transaksi1', function () {
-    return view('admin.person');
-})->name('transaction.success');
-Route::get('transaksi2', function () {
-    return view('admin.person');
-})->name('transaction.pending');
-Route::get('transaksi3', function () {
-    return view('admin.person');
-})->name('transaction.filter');
-
-Route::prefix('user')->group(function () {
-    Route::get('/request', function () {
-        return view('admin.person');
-    })->name('user.request');
-    Route::get('/management', function () {
-        return view('admin.person');
-    })->name('user.management');
-    Route::get('/officer', function () {
-        return view('admin.person');
-    })->name('user.officer');
-    Route::get('/customer', function () {
-        return view('admin.person');
-    })->name('user.customer');
-    Route::get('/role', function () {
-        return view('admin.person');
-    })->name('user.role');
-});
-
-Route::get('auth-login', function () {
-    return view('auth.login');
-})->name('auth-login');
+Route::get('auth-login', function () { return view('auth.login'); })->name('auth.login');
 
 Route::prefix('user')->group(function () {
     Route::get('/add-user', [PagesController::class, 'userForm'])->name('user.create');
     Route::get('/list', [PagesController::class, 'userList'])->name('user.list');
 });
+
+Route::post('/send-otp', [OtpController::class, 'sendOtp'])->name('send.otp');
+Route::post('/verify-otp', [OtpController::class, 'verifyOtp'])->name('verify.otp');
+Route::post('/login', [LoginController::class, 'login'])->name('login');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::get('/me', [LoginController::class, 'me'])->name('me');
+Route::get('/system-logs', [SystemLogController::class, 'index'])->name('system-logs.index');
 

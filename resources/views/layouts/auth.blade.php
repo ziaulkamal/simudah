@@ -10,6 +10,8 @@
     />
 
     <title>{{ $title ?? config('APP_NAME') }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <link rel="icon" type="image/png" href="images/favicon.png" />
     <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}" />
     <script src="{{ asset('build/assets/app.js') }}" defer></script>
@@ -35,7 +37,7 @@
     </div>
 
     @yield('pages')
-
+    @stack('scripts')
     <div id="x-teleport-target"></div>
     <script>
       window.addEventListener("DOMContentLoaded", () => Alpine.start());
