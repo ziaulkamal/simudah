@@ -112,7 +112,10 @@
                             </button>
                         </div>
 
-                        <div class="text-center text-xs-plus mt-3">
+
+                    </div>
+                </template>
+<div class="text-center text-xs-plus mt-3">
                             <p>
                                 <span>Belum Punya akun ? </span>
                                 <a class="text-primary hover:text-primary-focus dark:text-accent-light dark:hover:text-accent" href="{{ route('register.form') }}">
@@ -120,9 +123,6 @@
                                 </a>
                             </p>
                         </div>
-                    </div>
-                </template>
-
                 <!-- Separator -->
                 <div class="my-5 flex items-center space-x-3">
                     <div class="h-px flex-1 bg-slate-200 dark:bg-navy-500"></div>

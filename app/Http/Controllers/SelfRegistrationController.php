@@ -2,29 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\TemporaryPeople;
-use App\Models\TemporaryPeopleDocument;
+use App\Http\Controllers\Auth\OtpController;
 use App\Models\People;
 use App\Models\PeopleDocument;
+use App\Models\TemporaryPeople;
+use App\Models\TemporaryPeopleDocument;
 use App\Services\SecureFileService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
+use phpDocumentor\Reflection\Types\This;
 
 class SelfRegistrationController extends Controller
 {
-    /**
-     * Tampilkan form registrasi mandiri
-     */
     public function showForm()
     {
         return view('public.register');
     }
 
-    /**
-     * Proses pendaftaran mandiri
-     */
     public function submitForm(Request $request)
     {
+        $otpController = new OtpController();
         $request->validate([
             'fullName' => 'required|string|max:255',
             'identityNumber' => 'required|string|min:10|max:30',
@@ -35,14 +37,34 @@ class SelfRegistrationController extends Controller
         DB::beginTransaction();
 
         try {
+            // Cek duplikasi NIK atau HP di temporary_peoples
+            $existsTemp = TemporaryPeople::where('identity_hash', hash_hmac('sha256', $request->identityNumber, env('APP_KEY')))
+                ->orWhere('phoneNumber', $request->phoneNumber)
+                ->first();
+
+            if ($existsTemp) {
+                return redirect()->back()->with('swal_error', 'NIK atau Nomor HP sudah terdaftar di pendaftaran mandiri sebelumnya.');
+            }
+
+            // Cek duplikasi NIK di tabel utama
+            $existsMain = People::where('identity_hash', hash_hmac('sha256', $request->identityNumber, env('APP_KEY')))
+                ->orWhere('phoneNumber', $request->phoneNumber)
+                ->first();
+
+            if ($existsMain) {
+                return redirect()->back()->with('swal_error', 'NIK atau Nomor HP sudah terdaftar di sistem.');
+            }
+            $otp = rand(10000, 99999);
+            // Simpan temporary people
             $people = TemporaryPeople::create([
                 'fullName' => $request->fullName,
                 'identityNumber' => $request->identityNumber,
-                'phoneNumber' => $request->phoneNumber,
-                'otp_code' => rand(100000, 999999),
+                'phoneNumber' => $this->normalizePhone($request->phoneNumber),
+                'otp_code' => $otp,
                 'otp_expires_at' => now()->addMinutes(10),
             ]);
-
+            // $normalizedWa = $this->normalizePhone($request->phoneNumber);
+            $this->pushWhatsApp($otp, $request->phoneNumber);
             $file = $request->file('ktp_file');
             $encryptedPath = SecureFileService::storeEncryptedFile($file);
 
@@ -56,65 +78,125 @@ class SelfRegistrationController extends Controller
 
             DB::commit();
 
-            // NOTE: di production, kirim OTP via SMS
-            return redirect()->route('register.verify', $people->id)
-                ->with('success', 'Pendaftaran berhasil. Masukkan kode OTP berikut untuk verifikasi: ' . $people->otp_code);
+            // Redirect ke halaman verifikasi dengan SweetAlert sukses
+            return redirect()->route('register.verify', ['id' => Crypt::encryptString($people->id)])
+                ->with('swal_success', 'Pendaftaran berhasil. Masukkan kode OTP berikut untuk verifikasi: ' . $people->otp_code);
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => $e->getMessage()]);
+            return redirect()->back()->with('swal_error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Tampilkan halaman verifikasi OTP
-     */
     public function showVerify($id)
     {
-        $temp = TemporaryPeople::findOrFail($id);
-        return view('verify-otp', compact('temp'));
+        $decryptedId = Crypt::decryptString($id);
+        $temp = TemporaryPeople::findOrFail($decryptedId);
+        return view('public.verify', compact('temp'));
     }
 
-    /**
-     * Verifikasi OTP
-     */
     public function verifyOtp(Request $request, $id)
     {
-        $request->validate(['otp_code' => 'required|string']);
+        $request->validate([
+            'otp_code' => 'required|string',
+        ]);
+
         $temp = TemporaryPeople::findOrFail($id);
 
         if ($temp->otp_expires_at < now()) {
-            return back()->withErrors(['error' => 'OTP sudah kadaluarsa']);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'OTP sudah kadaluarsa.'
+            ], 400);
         }
 
         if ($temp->otp_code !== $request->otp_code) {
-            return back()->withErrors(['error' => 'OTP salah']);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'OTP salah.'
+            ], 400);
         }
 
-        // Tandai terverifikasi
         $temp->update(['is_verified' => true]);
 
-        // Migrasi ke tabel utama
-        $people = People::create([
-            'fullName' => $temp->fullName,
-            'identityNumber' => $temp->identityNumber,
-            'identity_hash' => $temp->identity_hash,
-            'phoneNumber' => $temp->phoneNumber,
-            'gender' => $temp->gender,
-            'birthdate' => $temp->birthdate,
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pendaftaran berhasil. Data yang anda berikan akan dilakukan konfirmasi lebih lanjut oleh petugas kami.',
         ]);
+    }
 
-        foreach ($temp->documents as $doc) {
-            PeopleDocument::create([
-                'people_id' => $people->id,
-                'type' => $doc->type,
-                'original_name' => $doc->original_name,
-                'mime_type' => $doc->mime_type,
-                'encrypted_path' => $doc->encrypted_path,
-            ]);
+
+    /**
+     * Normalisasi format nomor HP agar konsisten
+     */
+    private function normalizePhone($phone)
+    {
+        // Hapus spasi, tanda plus, dan karakter non-angka
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+
+        // Jika diawali 62 tapi database banyak pakai 08 → ubah jadi 08
+        if (str_starts_with($phone, '62')) {
+            $phone = '0' . substr($phone, 2);
         }
 
-        $temp->delete();
+        // Jika diawali 8 (tanpa 0), tambahkan 0
+        if (str_starts_with($phone, '8')) {
+            $phone = '0' . $phone;
+        }
 
-        return redirect()->route('register.form')->with('success', 'Verifikasi berhasil! Data Anda sudah disimpan.');
+        return $phone;
+    }
+
+    private function pushWhatsApp($otp, $phoneNumber)
+    {
+        try {
+            // Normalisasi nomor ke format internasional (misal: 628123456789)
+            $normalized = preg_replace('/[^0-9]/', '', $phoneNumber);
+            if (str_starts_with($normalized, '0')) {
+                $normalized = '62' . substr($normalized, 1);
+            }
+
+            // Format chatId sesuai API (contoh: 628123456789@c.us)
+            $chatId = $normalized . '@c.us';
+
+            // Pesan OTP
+            $text = "🔐 Kode OTP Anda adalah *{$otp}*.\n\nJangan berikan kode ini kepada siapa pun. #SIMUDAH";
+
+            // Panggil API WhatsApp
+            $response = Http::withHeaders([
+                'accept' => 'application/json',
+                'X-Api-Key' => env('WA_API_KEY', 'c386cfb98aed431787816f6b957df354'),
+                'Content-Type' => 'application/json',
+            ])->post(env('WA_GATEWAY_URL', 'http://wagateway:3000/api/sendText'), [
+                'chatId' => $chatId,
+                'reply_to' => null,
+                'text' => $text,
+                'linkPreview' => false,
+                'linkPreviewHighQuality' => false,
+                'session' => 'default',
+            ]);
+
+            if ($response->successful()) {
+                Log::info('OTP terkirim ke WhatsApp', [
+                    'phone' => $phoneNumber,
+                    'chatId' => $chatId,
+                    'otp' => $otp,
+                ]);
+                return true;
+            } else {
+                Log::error('Gagal mengirim OTP ke WhatsApp', [
+                    'phone' => $phoneNumber,
+                    'chatId' => $chatId,
+                    'otp' => $otp,
+                    'response' => $response->body(),
+                ]);
+                return false;
+            }
+        } catch (\Throwable $e) {
+            Log::error('pushWhatsApp error', [
+                'message' => $e->getMessage(),
+                'phone' => $phoneNumber,
+            ]);
+            return false;
+        }
     }
 }

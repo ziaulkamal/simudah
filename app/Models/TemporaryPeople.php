@@ -21,15 +21,16 @@ class TemporaryPeople extends Model
         'is_verified',
         'otp_code',
         'otp_expires_at',
+        // 'secret',
     ];
 
     protected $hidden = ['identityNumber', 'otp_code'];
 
-    protected static function booted()
-    {
-        static::creating(fn($m) => $m->secret = env('APP_KEY'));
-        static::retrieved(fn($m) => $m->secret = env('APP_KEY'));
-    }
+    // protected static function booted()
+    // {
+    //     static::creating(fn($m) => $m->secret = env('APP_KEY'));
+    //     static::retrieved(fn($m) => $m->secret = env('APP_KEY'));
+    // }
 
     public function getSecret(): string
     {
