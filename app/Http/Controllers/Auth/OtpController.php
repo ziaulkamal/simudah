@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\People;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 
 class OtpController extends Controller
 {
@@ -138,51 +140,59 @@ class OtpController extends Controller
 
     private function pushWhatsApp($otp, $phoneNumber)
     {
+        $client = new Client([
+            'timeout' => 20, // 20 detik timeout
+            'connect_timeout' => 10,
+            'http_errors' => false,
+        ]);
+
         try {
-            // Normalisasi nomor ke format internasional (misal: 628123456789)
             $normalized = preg_replace('/[^0-9]/', '', $phoneNumber);
             if (str_starts_with($normalized, '0')) {
                 $normalized = '62' . substr($normalized, 1);
             }
-
-            // Format chatId sesuai API (contoh: 628123456789@c.us)
             $chatId = $normalized . '@c.us';
-
-            // Pesan OTP
             $text = "🔐 Kode OTP Anda adalah *{$otp}*.\n\nJangan berikan kode ini kepada siapa pun. #SIMUDAH";
 
-            // Panggil API WhatsApp
-            $response = Http::withHeaders([
-                'accept' => 'application/json',
-                'X-Api-Key' => env('WA_API_KEY', 'c386cfb98aed431787816f6b957df354'),
-                'Content-Type' => 'application/json',
-            ])->post(env('WA_GATEWAY_URL', 'http://wagateway:3000/api/sendText'), [
-                'chatId' => $chatId,
-                'reply_to' => null,
-                'text' => $text,
-                'linkPreview' => false,
-                'linkPreviewHighQuality' => false,
-                'session' => 'default',
+            $response = $client->post(env('WA_GATEWAY_URL'), [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'X-Api-Key' => env('WA_API_KEY'),
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'chatId' => $chatId,
+                    'reply_to' => null,
+                    'text' => $text,
+                    'linkPreview' => false,
+                    'linkPreviewHighQuality' => false,
+                    'session' => 'default',
+                ],
             ]);
 
-            if ($response->successful()) {
+            if ($response->getStatusCode() === 200) {
                 Log::info('OTP terkirim ke WhatsApp', [
                     'phone' => $phoneNumber,
                     'chatId' => $chatId,
                     'otp' => $otp,
                 ]);
                 return true;
-            } else {
-                Log::error('Gagal mengirim OTP ke WhatsApp', [
-                    'phone' => $phoneNumber,
-                    'chatId' => $chatId,
-                    'otp' => $otp,
-                    'response' => $response->body(),
-                ]);
-                return false;
             }
+
+            Log::error('Gagal kirim OTP via WhatsApp', [
+                'status' => $response->getStatusCode(),
+                'body' => (string) $response->getBody(),
+                'phone' => $phoneNumber,
+            ]);
+            return false;
+        } catch (RequestException $e) {
+            Log::error('pushWhatsApp RequestException', [
+                'message' => $e->getMessage(),
+                'phone' => $phoneNumber,
+            ]);
+            return false;
         } catch (\Throwable $e) {
-            Log::error('pushWhatsApp error', [
+            Log::error('pushWhatsApp General Error', [
                 'message' => $e->getMessage(),
                 'phone' => $phoneNumber,
             ]);
