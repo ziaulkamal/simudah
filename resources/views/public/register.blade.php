@@ -207,15 +207,23 @@
 <script>
 document.addEventListener('alpine:init', () => {
     Alpine.data('registerForm', () => ({
-        form: { name: '', nik: '', phone: '', ktp: null },
+        form: { name: '', nik: '', phone: '', ktp_file: null, ktp_file_name: '' },
+
+        init() {
+            // Tangkap event dari ktpCropper
+            this.$el.addEventListener('ktp-updated', (e) => {
+                this.form.ktp_file = e.detail.blob;
+                this.form.ktp_file_name = e.detail.fileName;
+            });
+        },
 
         async submitForm() {
             try {
                 let formData = new FormData(document.getElementById('registerForm'));
-                // Include cropped KTP preview
-                if (this.$refs.ktpCropper && this.$refs.ktpCropper.preview) {
-                    let blob = await (await fetch(this.$refs.ktpCropper.preview)).blob();
-                    formData.set('ktp_file', blob, this.$refs.ktpCropper.fileName || 'ktp.jpg');
+
+                // Masukkan file KTP cropped jika ada
+                if (this.form.ktp_file) {
+                    formData.set('ktp_file', this.form.ktp_file, this.form.ktp_file_name);
                 }
 
                 const response = await fetch("{{ route('register.submit') }}", {
@@ -242,26 +250,93 @@ document.addEventListener('alpine:init', () => {
                 }));
             }
         }
-    }))
-})
+    }));
+});
 
 // ==== KTP CROPPER ====
 function ktpCropper() {
-  return {
-    preview: null, tempImage: null, fileName: '', showModal: false, cropper: null, stream: null,
-    handleFile(event) {
-        const file = event.target.files[0];
-        if (!file || !file.type.startsWith("image/")) return alert("Hanya gambar yang diperbolehkan!");
-        const reader = new FileReader();
-        reader.onload = (e) => { this.tempImage = e.target.result; this.showModal = true; this.$nextTick(() => this.initCropper()); };
-        reader.readAsDataURL(file);
-        this.fileName = file.name;
-    },
-    initCropper() { if (this.cropper) this.cropper.destroy(); this.cropper = new Cropper(this.$refs.image, { aspectRatio: 85.6 / 53.98, viewMode: 1, dragMode: "move", autoCropArea: 0.95, background: false, movable: true, zoomable: true, responsive: true, wheelZoomRatio: 0.1 }); },
-    saveCrop() { if (!this.cropper) return; const canvas = this.cropper.getCroppedCanvas({ width: 856, height: 540, imageSmoothingQuality: "high" }); this.preview = canvas.toDataURL("image/jpeg", 0.9); this.showModal = false; this.cropper.destroy(); },
-    cancelCrop() { if (this.cropper) this.cropper.destroy(); this.showModal = false; this.tempImage = null; },
-    removeFile() { this.preview = null; this.fileName = ""; },
-  }
+    return {
+        preview: null,
+        tempImage: null,
+        fileName: '',
+        showModal: false,
+        cropper: null,
+
+        handleFile(event) {
+            const file = event.target.files[0];
+            if (!file || !file.type.startsWith("image/")) return alert("Hanya gambar yang diperbolehkan!");
+            this.fileName = file.name;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.tempImage = e.target.result;
+                this.showModal = true;
+                this.$nextTick(() => this.initCropper());
+            };
+            reader.readAsDataURL(file);
+        },
+
+        initCropper() {
+            if (this.cropper) this.cropper.destroy();
+            this.cropper = new Cropper(this.$refs.image, {
+                aspectRatio: 85.6 / 53.98,
+                viewMode: 1,
+                dragMode: "move",
+                autoCropArea: 0.95,
+                background: false,
+                movable: true,
+                zoomable: true,
+                responsive: true,
+                wheelZoomRatio: 0.1
+            });
+        },
+
+        saveCrop() {
+            if (!this.cropper) return;
+
+            const canvas = this.cropper.getCroppedCanvas({
+                width: 856,
+                height: 540,
+                imageSmoothingQuality: "high"
+            });
+
+            // Convert ke blob
+            const blob = this.dataURLtoBlob(canvas.toDataURL("image/jpeg", 0.9));
+
+            // Kirim event ke registerForm
+            this.$dispatch('ktp-updated', { blob, fileName: this.fileName });
+
+            // Tampilkan preview
+            this.preview = canvas.toDataURL("image/jpeg", 0.9);
+
+            // Tutup modal
+            this.showModal = false;
+            this.cropper.destroy();
+        },
+
+        cancelCrop() {
+            if (this.cropper) this.cropper.destroy();
+            this.showModal = false;
+            this.tempImage = null;
+        },
+
+        removeFile() {
+            this.preview = null;
+            this.fileName = "";
+            this.tempImage = null;
+
+            // Hapus dari registerForm juga
+            this.$dispatch('ktp-updated', { blob: null, fileName: '' });
+        },
+
+        dataURLtoBlob(dataurl) {
+            let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+            while(n--){ u8arr[n] = bstr.charCodeAt(n); }
+            return new Blob([u8arr], {type:mime});
+        }
+    }
 }
 </script>
+
 @endpush
