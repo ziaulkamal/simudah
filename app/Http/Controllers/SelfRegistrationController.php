@@ -2,20 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Auth\OtpController;
 use App\Models\People;
-use App\Models\PeopleDocument;
 use App\Models\TemporaryPeople;
 use App\Models\TemporaryPeopleDocument;
 use App\Services\SecureFileService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Session;
-use phpDocumentor\Reflection\Types\This;
+
 
 class SelfRegistrationController extends Controller
 {
@@ -131,7 +127,6 @@ class SelfRegistrationController extends Controller
             ]);
         }
     }
-
 
 
     public function showVerify($id)
