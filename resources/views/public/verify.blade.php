@@ -48,9 +48,7 @@
             </div>
 
             <div class="mt-8 text-xs text-slate-400 dark:text-navy-300">
-                <p>Belum menerima kode? <a href="{{ route('register.resendOtp', ['id' => request('id')]) }}" class="btn btn-outline-primary">
-    Kirim Ulang OTP
-</a></p>
+
             </div>
         </div>
     </main>
