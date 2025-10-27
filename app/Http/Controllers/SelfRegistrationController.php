@@ -36,34 +36,74 @@ class SelfRegistrationController extends Controller
         DB::beginTransaction();
 
         try {
-            $existsTemp = TemporaryPeople::where('identity_hash', hash_hmac('sha256', $request->identityNumber, env('APP_KEY')))
-                ->orWhere('phoneNumber', $request->phoneNumber)
+            $identityHash = hash_hmac('sha256', $request->identityNumber, env('APP_KEY'));
+            $normalizedPhone = $this->normalizePhone($request->phoneNumber);
+
+            // 🔍 1️⃣ Cek data di TemporaryPeople
+            $existsTemp = TemporaryPeople::where('identity_hash', $identityHash)
+                ->orWhere('phoneNumber', $normalizedPhone)
                 ->first();
 
-            if ($existsTemp) {
-                return response()->json(['status' => 'error', 'message' => 'NIK atau Nomor HP sudah terdaftar di pendaftaran mandiri sebelumnya.']);
-            }
-
-            $existsMain = People::where('identity_hash', hash_hmac('sha256', $request->identityNumber, env('APP_KEY')))
-                ->orWhere('phoneNumber', $request->phoneNumber)
+            // 🔍 2️⃣ Cek data di tabel utama People
+            $existsMain = People::where('identity_hash', $identityHash)
+                ->orWhere('phoneNumber', $normalizedPhone)
                 ->first();
 
             if ($existsMain) {
-                return response()->json(['status' => 'error', 'message' => 'NIK atau Nomor HP sudah terdaftar di sistem.']);
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'NIK atau Nomor HP sudah terdaftar di sistem.'
+                ]);
             }
 
+            // 🧩 Jika sudah ada di temporary tapi belum verifikasi → kirim ulang OTP
+            if ($existsTemp && !$existsTemp->is_verified) {
+
+                // Generate OTP baru
+                $otp = rand(10000, 99999);
+
+                $existsTemp->update([
+                    'otp_code' => $otp,
+                    'otp_expires_at' => now()->addMinutes(10),
+                ]);
+
+                // Kirim ulang OTP ke WhatsApp
+                $this->pushWhatsApp($otp, $normalizedPhone);
+
+                DB::commit();
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Akun Anda sudah terdaftar namun belum terverifikasi. Kami telah mengirim ulang kode OTP.',
+                    'redirect' => route('register.verify', ['id' => Crypt::encryptString($existsTemp->id)])
+                ]);
+            }
+
+            // 🚫 Jika sudah terdaftar & sudah verifikasi → tolak
+            if ($existsTemp && $existsTemp->is_verified) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'NIK atau Nomor HP sudah terdaftar dan terverifikasi.'
+                ]);
+            }
+
+            // 🆕 Jika benar-benar baru → buat record baru
             $otp = rand(10000, 99999);
 
             $people = TemporaryPeople::create([
                 'fullName' => $request->fullName,
                 'identityNumber' => $request->identityNumber,
-                'phoneNumber' => $this->normalizePhone($request->phoneNumber),
+                'identity_hash' => $identityHash,
+                'phoneNumber' => $normalizedPhone,
                 'otp_code' => $otp,
                 'otp_expires_at' => now()->addMinutes(10),
+                'is_verified' => false,
             ]);
 
-            $this->pushWhatsApp($otp, $request->phoneNumber);
+            // Kirim OTP ke WhatsApp
+            $this->pushWhatsApp($otp, $normalizedPhone);
 
+            // Simpan file KTP terenkripsi
             $file = $request->file('ktp_file');
             $encryptedPath = SecureFileService::storeEncryptedFile($file);
 
@@ -79,14 +119,19 @@ class SelfRegistrationController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Pendaftaran berhasil',
+                'message' => 'Pendaftaran berhasil. Kode OTP telah dikirim ke WhatsApp Anda.',
                 'redirect' => route('register.verify', ['id' => Crypt::encryptString($people->id)])
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+            Log::error('submitForm error', ['message' => $e->getMessage()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ]);
         }
     }
+
 
 
     public function showVerify($id)
