@@ -76,7 +76,7 @@ class SelfRegistrationController extends Controller
             if ($existsTemp && $existsTemp->is_verified) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'NIK atau Nomor HP sudah terdaftar dan terverifikasi.'
+                    'message' => 'NIK atau Nomor HP sudah terdaftar dan terverifikasi. Harap menunggu aktivasi oleh petugas.'
                 ]);
             }
 
