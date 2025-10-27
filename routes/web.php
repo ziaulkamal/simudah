@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Controller;
@@ -10,9 +11,26 @@ use App\Http\Controllers\SelfRegistrationController;
 use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\SystemLogController;
 use Illuminate\Support\Facades\Route;
+use App\Services\SecureFileService;
+use Illuminate\Support\Facades\Response;
+use App\Models\TemporaryPeopleDocument;
 
+Route::get('/admin/activation/data', [ActivationController::class, 'data'])->name('activation.data');
 
+Route::get('/storage/file/{id}', function ($id) {
+    $doc = TemporaryPeopleDocument::findOrFail($id);
 
+    if (!\Illuminate\Support\Facades\Storage::exists($doc->encrypted_path)) {
+        abort(404, 'File tidak ditemukan');
+    }
+
+    $decrypted = SecureFileService::getDecryptedFile($doc->encrypted_path);
+
+    return Response::make($decrypted, 200, [
+        'Content-Type' => $doc->mime_type,
+        'Content-Disposition' => 'inline; filename="' . $doc->original_name . '"'
+    ]);
+})->name('storage.file');
 
 
 // ✅ Rute wilayah dinamis
@@ -64,3 +82,10 @@ Route::get('/verify-otp/{id}', [SelfRegistrationController::class, 'showVerify']
 Route::post('/verify-otp/{id}', [SelfRegistrationController::class, 'verifyOtp'])->name('register.verify.submit');
 Route::get('/register/resend-otp/{id}', [SelfRegistrationController::class, 'resendOtp'])
     ->name('register.resendOtp');
+
+Route::prefix('activation')->name('activation.')->group(function () {
+    Route::get('/', [ActivationController::class, 'index'])->name('index');
+    Route::get('/{id}', [ActivationController::class, 'show'])->name('show');
+    Route::post('/{id}/activate', [ActivationController::class, 'activate'])->name('activate');
+});
+
