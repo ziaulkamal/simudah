@@ -26,7 +26,6 @@ class SelfRegistrationController extends Controller
 
     public function submitForm(Request $request)
     {
-        $otpController = new OtpController();
         $request->validate([
             'fullName' => 'required|string|max:255',
             'identityNumber' => 'required|string|min:10|max:30',
@@ -37,25 +36,24 @@ class SelfRegistrationController extends Controller
         DB::beginTransaction();
 
         try {
-            // Cek duplikasi NIK atau HP di temporary_peoples
             $existsTemp = TemporaryPeople::where('identity_hash', hash_hmac('sha256', $request->identityNumber, env('APP_KEY')))
                 ->orWhere('phoneNumber', $request->phoneNumber)
                 ->first();
 
             if ($existsTemp) {
-                return redirect()->back()->with('swal_error', 'NIK atau Nomor HP sudah terdaftar di pendaftaran mandiri sebelumnya.');
+                return response()->json(['status' => 'error', 'message' => 'NIK atau Nomor HP sudah terdaftar di pendaftaran mandiri sebelumnya.']);
             }
 
-            // Cek duplikasi NIK di tabel utama
             $existsMain = People::where('identity_hash', hash_hmac('sha256', $request->identityNumber, env('APP_KEY')))
                 ->orWhere('phoneNumber', $request->phoneNumber)
                 ->first();
 
             if ($existsMain) {
-                return redirect()->back()->with('swal_error', 'NIK atau Nomor HP sudah terdaftar di sistem.');
+                return response()->json(['status' => 'error', 'message' => 'NIK atau Nomor HP sudah terdaftar di sistem.']);
             }
+
             $otp = rand(10000, 99999);
-            // Simpan temporary people
+
             $people = TemporaryPeople::create([
                 'fullName' => $request->fullName,
                 'identityNumber' => $request->identityNumber,
@@ -63,8 +61,9 @@ class SelfRegistrationController extends Controller
                 'otp_code' => $otp,
                 'otp_expires_at' => now()->addMinutes(10),
             ]);
-            // $normalizedWa = $this->normalizePhone($request->phoneNumber);
+
             $this->pushWhatsApp($otp, $request->phoneNumber);
+
             $file = $request->file('ktp_file');
             $encryptedPath = SecureFileService::storeEncryptedFile($file);
 
@@ -78,14 +77,17 @@ class SelfRegistrationController extends Controller
 
             DB::commit();
 
-            // Redirect ke halaman verifikasi dengan SweetAlert sukses
-            return redirect()->route('register.verify', ['id' => Crypt::encryptString($people->id)])
-                ->with('swal_success', 'Pendaftaran berhasil. Masukkan kode OTP berikut untuk verifikasi: ' . $people->otp_code);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Pendaftaran berhasil',
+                'redirect' => route('register.verify', ['id' => Crypt::encryptString($people->id)])
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('swal_error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
         }
     }
+
 
     public function showVerify($id)
     {

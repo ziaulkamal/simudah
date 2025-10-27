@@ -1,7 +1,7 @@
 @extends('layouts.auth')
 
 @section('pages')
-<div id="root" x-data="authPage" class="min-h-100vh flex grow bg-slate-50 dark:bg-navy-900" x-cloak>
+<div id="root" class="min-h-100vh flex grow bg-slate-50 dark:bg-navy-900" x-cloak>
 
     <main class="grid w-full grow grid-cols-1 place-items-center">
         <div class="w-full max-w-[26rem] p-4 sm:px-5">
@@ -55,9 +55,10 @@
                     {{ session('success') }}
                 </div>
                 @endif
-
-                <form method="POST" action="{{ route('register.submit') }}" enctype="multipart/form-data" class="space-y-4">
+            <div x-data="registerForm()" x-cloak>
+                <form id="registerForm" @submit.prevent="submitForm" enctype="multipart/form-data" class="space-y-4">
                     @csrf
+
                     <label class="block">
                         <span class="text-slate-700 dark:text-slate-100">Nama Lengkap</span>
                         <input type="text" name="fullName" x-model="form.name"
@@ -130,7 +131,11 @@
                                 class="btn border border-primary font-medium text-primary hover:bg-primary hover:text-white focus:bg-primary focus:text-white active:bg-primary/90 dark:border-accent dark:text-accent-light dark:hover:bg-accent dark:hover:text-white dark:focus:bg-accent dark:focus:text-white dark:active:bg-accent/90">
                                 📁 Upload KTP
                             </button>
-
+                            {{-- <p class="text-sm text-slate-500">atau</p>
+                            <button type="button" @click="openPermissionModal"
+                                class="btn border border-fuchsia-700 text-fuchsia-700 hover:bg-fuchsia-50 dark:hover:bg-navy-700 rounded-lg px-4 py-2">
+                                📸 Ambil Foto KTP
+                            </button> --}}
                             </div>
                         </template>
 
@@ -141,37 +146,36 @@
                     </label>
 
 
-                    <!-- MODAL CROP -->
                     <template x-if="showModal">
-                        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-                        @click.self="cancelCrop">
-                        <div
-                            class="bg-white dark:bg-navy-800 rounded-2xl shadow-2xl p-5 w-full max-w-xl flex flex-col items-center animate-fade-in-up">
-                            <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-100 mb-3">
-                            Sesuaikan Foto KTP
-                            </h2>
-
+                        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto" @click.self="cancelCrop">
                             <div
-                            class="relative w-full md:w-[420px] aspect-[1.585] rounded-xl overflow-hidden border border-slate-300 dark:border-navy-600 bg-slate-100 dark:bg-navy-700">
-                            <img x-ref="image" :src="tempImage" alt="Crop area" class="max-w-full block select-none" />
-                            </div>
+                                class="bg-white dark:bg-navy-800 rounded-2xl shadow-2xl p-5 w-full max-w-xl flex flex-col items-center animate-fade-in-up max-h-[90vh]">
 
-                            <div class="flex justify-center gap-3 mt-5">
-                            <button @click="cancelCrop"
-                                class="px-4 py-2 rounded-lg border border-slate-300 dark:border-navy-600 text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-700">
-                                Batal
-                            </button>
-                            <button @click="saveCrop" class="btn border border-secondary font-medium text-secondary hover:bg-secondary hover:text-white focus:bg-secondary focus:text-white active:bg-secondary/90 dark:text-secondary-light dark:hover:bg-secondary dark:hover:text-white dark:focus:bg-secondary dark:focus:text-white dark:active:bg-secondary/90">
-                                Simpan
-                            </button>
+                                <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-100 mb-3 text-center">
+                                    Sesuaikan Foto KTP
+                                </h2>
+
+                                <div class="relative w-full md:w-[420px] aspect-[1.585] rounded-xl overflow-hidden border border-slate-300 dark:border-navy-600 bg-slate-100 dark:bg-navy-700 flex-shrink-0">
+                                    <img x-ref="image" :src="tempImage" alt="Crop area" class="max-w-full max-h-[70vh] mx-auto my-auto block select-none object-contain" />
+                                </div>
+
+                                <div class="flex justify-center gap-3 mt-5 flex-shrink-0">
+                                    <button @click="cancelCrop"
+                                        class="px-4 py-2 rounded-lg border border-slate-300 dark:border-navy-600 text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-700">
+                                        Batal
+                                    </button>
+                                    <button @click="saveCrop"
+                                        class="btn border border-secondary font-medium text-secondary hover:bg-secondary hover:text-white focus:bg-secondary focus:text-white active:bg-secondary/90 dark:text-secondary-light dark:hover:bg-secondary dark:hover:text-white dark:focus:bg-secondary dark:focus:text-white dark:active:bg-secondary/90">
+                                        Simpan
+                                    </button>
+                                </div>
                             </div>
-                        </div>
                         </div>
                     </template>
                     </div>
 
                     <div class="flex justify-center space-x-2 pt-5">
-                        <a href="{{ route('auth.login') }}"
+                        <a href="{{ route('register.form') }}"
                             class="btn min-w-[7rem] border border-slate-300 font-medium text-slate-800 hover:bg-slate-150
                             focus:bg-slate-150 active:bg-slate-150/80 dark:border-navy-450 dark:text-navy-50
                             dark:hover:bg-navy-700 dark:focus:bg-navy-700 dark:active:bg-navy-700/90 text-center px-4 py-2 rounded-lg">
@@ -185,12 +189,13 @@
                     </div>
                 </form>
             </div>
+            </div>
 
         </div>
     </main>
 </div>
 
-
+<x-modal />
 @endsection
 
 @push('styles')
@@ -220,17 +225,71 @@
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('registerForm', () => ({
-            form: {
-                name: '',
-                nik: '',
-                phone: '',
-                ktp: ''
-            },
-        }))
-    })
+document.addEventListener('alpine:init', () => {
+    Alpine.data('registerForm', () => ({
+        form: {
+            name: '',
+            nik: '',
+            phone: '',
+            ktp: null,
+        },
+
+        async submitForm() {
+            try {
+                let formData = new FormData(document.getElementById('registerForm'));
+
+                // Jika ada preview crop, masukkan ke formData
+                if (this.$refs.ktpCropper && this.$refs.ktpCropper.preview) {
+                    let blob = await (await fetch(this.$refs.ktpCropper.preview)).blob();
+                    formData.set('ktp_file', blob, this.$refs.ktpCropper.fileName || 'ktp.jpg');
+                }
+
+                const response = await fetch("{{ route('register.submit') }}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if(data.status === 'success') {
+                    window.dispatchEvent(new CustomEvent('show-alert', {
+                        detail: {
+                            type: 'success',
+                            title: 'Berhasil',
+                            message: data.message
+                        }
+                    }));
+
+                    // Redirect setelah modal ditutup
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 1500);
+                } else {
+                    window.dispatchEvent(new CustomEvent('show-alert', {
+                        detail: {
+                            type: 'error',
+                            title: 'Gagal',
+                            message: data.message
+                        }
+                    }));
+                }
+            } catch(err) {
+                window.dispatchEvent(new CustomEvent('show-alert', {
+                    detail: {
+                        type: 'error',
+                        title: 'Error',
+                        message: 'Terjadi kesalahan jaringan atau server.'
+                    }
+                }));
+            }
+        }
+    }))
+})
 </script>
+
 
 <script>
 function ktpCropper() {
@@ -344,5 +403,31 @@ function ktpCropper() {
 }
 </script>
 
+<script>
+function modalHandler() {
+    return {
+        show: false,
+        type: 'success',
+        title: '',
+        message: '',
+        init() {
+            let success = @json(session('swal_success'));
+            let error = @json(session('swal_error'));
+
+            if(success) this.showModal('success', 'Sukses', success);
+            if(error) this.showModal('error', 'Error', error);
+        },
+        showModal(type, title, message) {
+            this.type = type;
+            this.title = title;
+            this.message = message;
+            this.show = true;
+        },
+        close() {
+            this.show = false;
+        }
+    }
+}
+</script>
 @endpush
 
