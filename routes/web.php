@@ -62,4 +62,5 @@ Route::post('/register', [SelfRegistrationController::class, 'submitForm'])->nam
 
 Route::get('/verify-otp/{id}', [SelfRegistrationController::class, 'showVerify'])->name('register.verify');
 Route::post('/verify-otp/{id}', [SelfRegistrationController::class, 'verifyOtp'])->name('register.verify.submit');
-
+Route::get('/register/resend-otp/{id}', [SelfRegistrationController::class, 'resendOtp'])
+    ->name('register.resendOtp');

@@ -166,6 +166,54 @@ class SelfRegistrationController extends Controller
         ]);
     }
 
+    public function resendOtp($encryptedId)
+    {
+        try {
+            $id = Crypt::decryptString($encryptedId);
+            $person = TemporaryPeople::find($id);
+
+            if (!$person) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Data pendaftar tidak ditemukan.'
+                ], 404);
+            }
+
+            // Jika sudah terverifikasi, arahkan ke halaman login
+            if ($person->is_verified) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Akun sudah terverifikasi. Silakan login.',
+                    'redirect' => route('login')
+                ]);
+            }
+
+            // Generate OTP baru
+            $otp = rand(10000, 99999);
+
+            $person->update([
+                'otp_code' => $otp,
+                'otp_expires_at' => now()->addMinutes(10),
+            ]);
+
+            // Kirim ulang OTP ke WhatsApp
+            $this->pushWhatsApp($otp, $person->phoneNumber);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Kode OTP baru telah dikirim ke WhatsApp Anda.',
+                'redirect' => route('register.verify', ['id' => $encryptedId])
+            ]);
+        } catch (\Exception $e) {
+            Log::error('resendOtp error', ['message' => $e->getMessage()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 
     /**
      * Normalisasi format nomor HP agar konsisten

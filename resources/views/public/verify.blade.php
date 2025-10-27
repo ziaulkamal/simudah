@@ -48,7 +48,7 @@
             </div>
 
             <div class="mt-8 text-xs text-slate-400 dark:text-navy-300">
-                <p>Belum menerima kode? <a href="{{ route('register.form') }}" class="text-primary dark:text-accent">Kirim ulang</a></p>
+                <p>Belum menerima kode? <a href="{{ route('register.resendOtp') }}" class="text-primary dark:text-accent">Kirim ulang</a></p>
             </div>
         </div>
     </main>
