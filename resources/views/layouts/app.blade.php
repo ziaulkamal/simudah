@@ -46,7 +46,15 @@
     <!-- Fallback image -->
     <link rel="image_src" href="{{ asset('images/og-image.png') }}" />
 
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZGY5TYKW91"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
 
+    gtag('config', 'G-ZGY5TYKW91');
+    </script>
 
     <!-- Assets -->
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}" />

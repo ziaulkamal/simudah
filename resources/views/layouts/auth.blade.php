@@ -16,7 +16,15 @@
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#16a34a" />
     <link rel="canonical" href="{{ url()->current() }}" />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZGY5TYKW91"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
 
+    gtag('config', 'G-ZGY5TYKW91');
+    </script>
     <!-- Open Graph -->
     <meta property="og:locale" content="id_ID" />
     <meta property="og:site_name" content="SIMUDAH" />
