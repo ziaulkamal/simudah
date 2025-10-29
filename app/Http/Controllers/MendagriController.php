@@ -61,11 +61,13 @@ class MendagriController extends Controller
 
 
         try {
-            $response = Http::withHeaders([
-                'x-client-id' => $this->clientId,
-                'x-signature' => $signature,
-                'Content-Type' => 'application/json',
-            ])->post("{$this->baseUrl}/identity/nik", $body);
+            $response = Http::timeout(2)->retry(1, 200) // ⏱ stop otomatis setelah 2 detik
+                ->withHeaders([
+                    'x-client-id' => $this->clientId,
+                    'x-signature' => $signature,
+                    'Content-Type' => 'application/json',
+                ])
+                ->post("{$this->baseUrl}/identity/nik", $body);
 
             $gatewayData = $response->json();
 
@@ -74,16 +76,25 @@ class MendagriController extends Controller
             $birthdate = $this->extractBirthdateFromNik($nik);
             $age = $birthdate ? $this->calculateAge($birthdate) : null;
 
-            // Timpa / merge response gateway dengan data tambahan
             $finalData = array_merge($gatewayData, [
                 'gender' => $gender,
                 'birthdate' => $birthdate,
                 'age' => $age,
             ]);
 
-            if ($response->status() === 403) return response()->json(['error' => 'Forbidden: Invalid client credentials'], 403);
+            if ($response->status() === 403) {
+                return response()->json(['error' => 'Forbidden: Invalid client credentials'], 403);
+            }
+
             return response()->json($finalData, $response->status());
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            // ❌ Timeout atau koneksi gagal
+            return response()->json([
+                'error' => 'Request Timeout',
+                'message' => 'Gateway tidak merespons dalam 2 detik. Coba lagi nanti.',
+            ], 504);
         } catch (\Throwable $e) {
+            // ❌ Error umum lain
             return response()->json([
                 'error' => 'Failed to connect to Python Gateway API',
                 'message' => $e->getMessage(),
@@ -107,7 +118,8 @@ class MendagriController extends Controller
         $signature = HmacService::generateSignature($body, $this->clientSecret);
 
         try {
-            $response = Http::withHeaders([
+            $response = Http::timeout(2)->retry(1, 200)
+            ->withHeaders([
                 'x-client-id' => $this->clientId,
                 'x-signature' => $signature,
                 'Content-Type' => 'application/json',
@@ -115,7 +127,14 @@ class MendagriController extends Controller
 
             if ($response->status() === 403) return response()->json(['error' => 'Forbidden: Invalid client credentials'], 403);
             return response()->json($response->json(), $response->status());
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            // ❌ Timeout atau koneksi gagal
+            return response()->json([
+                'error' => 'Request Timeout',
+                'message' => 'Gateway tidak merespons dalam 2 detik. Coba lagi nanti.',
+            ], 504);
         } catch (\Throwable $e) {
+            // ❌ Error umum lain
             return response()->json([
                 'error' => 'Failed to connect to Python Gateway API',
                 'message' => $e->getMessage(),
