@@ -45,7 +45,7 @@ Route::get('/api/villages/{districtId}', [MendagriController::class, 'getVillage
 Route::get('/', [PagesController::class, 'dashboard'])->name('dashboard')->middleware('check.session:1,2,3');
 Route::get('addons', [PagesController::class, 'addons'])->name('addons');
 
-Route::get('add-pelanggan', [PagesController::class, 'insertPeoples'])->name('customer.create');
+Route::get('add-pelanggan/{id?}', [PagesController::class, 'insertPeoples'])->name('customer.create');
 Route::get('pelanggan', [PagesController::class, 'peoples'])->name('customer.index');
 Route::get('pelanggan/detail/{hash}', [PagesController::class, 'viewsPeople'])->name('customer.view');
 Route::get('pelanggan/trx', [PagesController::class, 'viewTransactions'])->name('pelanggan.trx');

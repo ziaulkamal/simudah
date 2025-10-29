@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\People;
 use App\Models\TemporaryPeople;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
+
 
 class ActivationController extends Controller
 {
@@ -58,7 +60,7 @@ class ActivationController extends Controller
 
         $peoplesData = $peoples->map(function($person) use ($activatedHashes) {
             return [
-                'id' => $person->id,
+                'id' => Crypt::encryptString($person->id),
                 'fullName' => $person->fullName,
                 'identityNumber' => $person->identityNumber,
                 'phoneNumber' => $person->phoneNumber,

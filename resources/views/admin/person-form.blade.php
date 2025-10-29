@@ -45,7 +45,7 @@
                     label="No. KTP"
                     placeholder="Nomor KTP"
                     icon="fa-solid fa-id-card"
-                    :value="old('identityNumber', isset($model->identityNumber) ? Crypt::decryptString($model->identityNumber) : null)" />
+                    :value="old('identityNumber', $people['identityNumber'] ?? '')" />
 
                 <x-form-input
                     name="familyIdentityNumber"
@@ -60,7 +60,7 @@
                 label="Nama Lengkap"
                 placeholder="Nama lengkap Anda"
                 icon="fa-regular fa-user"
-                :value="old('fullName', $model->fullName ?? null)" />
+                :value="old('fullName', $people['fullName'] ?? ($model->fullName ?? ''))" />
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <x-form-input
@@ -68,7 +68,7 @@
                     label="Usia"
                     placeholder="##"
                     icon="fa-solid fa-hashtag"
-                    :value="old('age', $model->age ?? null)"
+                    :value="old('age', $people['age'] ?? ($model->age ?? ''))"
                     readonly />
 
                 <x-form-input
@@ -76,14 +76,14 @@
                     label="Tanggal Lahir"
                     type="date"
                     icon="fa-regular fa-calendar"
-                    :value="old('birthdate', $model->birthdate ?? null)" />
+                    :value="old('birthdate', $people['birthdate'] ?? ($model->birthdate ?? ''))" />
             </div>
 
             <x-select-dropdown
                 name="gender"
                 label="Jenis Kelamin"
                 :options="['male' => 'Laki-laki', 'female' => 'Perempuan']"
-                :selected="old('gender', $model->gender ?? null)" />
+                :selected="old('gender', $people['gender'] ?? ($model->gender ?? ''))" />
 
             <x-select-dropdown
                 name="religion"
@@ -109,7 +109,7 @@
                     name="phoneNumber"
                     label="Nomor Telepon"
                     placeholder="08xxxxxxxxxx"
-                    :value="old('phoneNumber', $model->phoneNumber ?? null)" />
+                    :value="old('phoneNumber', $people['phoneNumber'] ?? ($model->phoneNumber ?? ''))" />
 
                 <x-form-input
                     name="email"
@@ -133,53 +133,52 @@
 @push('scripts')
 {{-- ✅ Modal Notifikasi Global --}}
 <div
-  x-data="{ open: false, type: 'info', title: '', message: '' }"
-  x-on:show-alert.window="
-      open = true;
-      type = $event.detail.type;
-      title = $event.detail.title;
-      message = $event.detail.message;
-  "
-  x-show="open"
-  x-transition
-  class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm"
-  x-cloak
->
-  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md p-6">
-    <!-- Judul -->
-    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3 mb-4">
-      <h3
-        class="text-lg font-semibold"
-        :class="{
-          'text-green-600': type === 'success',
-          'text-red-600': type === 'error',
-          'text-yellow-600': type === 'warning',
-          'text-blue-600': type === 'info'
-        }"
-        x-text="title"
-      ></h3>
+    x-data="{ open: false, type: 'info', title: '', message: '' }"
+    x-on:show-alert.window="
+        open = true;
+        type = $event.detail.type;
+        title = $event.detail.title;
+        message = $event.detail.message;
+    "
+    x-show="open"
+    x-transition
+    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm"
+    x-cloak >
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md p-6">
+        <!-- Judul -->
+        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3 mb-4">
+        <h3
+            class="text-lg font-semibold"
+            :class="{
+            'text-green-600': type === 'success',
+            'text-red-600': type === 'error',
+            'text-yellow-600': type === 'warning',
+            'text-blue-600': type === 'info'
+            }"
+            x-text="title"
+        ></h3>
 
-      <button
-        @click="open = false"
-        class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-      >
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+        <button
+            @click="open = false"
+            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+        >
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        </div>
+
+        <!-- Pesan -->
+        <p class="text-slate-700 dark:text-slate-200" x-text="message"></p>
+
+        <!-- Tombol OK -->
+        <div class="mt-6 text-right">
+        <button
+            @click="open = false"
+            class="btn rounded-lg bg-primary text-white hover:bg-primary-focus focus:bg-primary-focus active:bg-primary-focus/90"
+        >
+            OK
+        </button>
+        </div>
     </div>
-
-    <!-- Pesan -->
-    <p class="text-slate-700 dark:text-slate-200" x-text="message"></p>
-
-    <!-- Tombol OK -->
-    <div class="mt-6 text-right">
-      <button
-        @click="open = false"
-        class="btn rounded-lg bg-primary text-white hover:bg-primary-focus focus:bg-primary-focus active:bg-primary-focus/90"
-      >
-        OK
-      </button>
-    </div>
-  </div>
 </div>
 <script>
 function peopleForm(id = null) {

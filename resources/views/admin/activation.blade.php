@@ -172,6 +172,8 @@ function activationPage() {
                 }
             }).then(() => {
                 person.status = 'aktif';
+                // redirect ke route add-pelanggan dengan ID person
+                window.location.href = `/add-pelanggan/${person.id}`;
             });
         }
     };

@@ -8,7 +8,9 @@ use App\Models\Kemendagri\Villages;
 use App\Models\People;
 use App\Models\Role;
 use App\Models\SecureUser;
+use App\Models\TemporaryPeople;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 
 class PagesController extends Controller
 {
@@ -95,7 +97,7 @@ class PagesController extends Controller
     }
 
 
-    function insertPeoples()
+    function insertPeoples($id = null)
     {
         $data = [
             'title'         => 'Pelanggan',
@@ -104,8 +106,26 @@ class PagesController extends Controller
             'titleMenus'    => 'Pelanggan',
             'sectionMenu'   => 'main-menu',
         ];
+
+        if ($id) {
+            $id = Crypt::decryptString($id);
+            $people = TemporaryPeople::find($id);
+            if ($people) {
+                $source = extract_birth_info_from_nik($people->identityNumber);
+                $data['people'] = [
+                    'identityNumber' => $people->identityNumber,
+                    'fullName'       => $people->fullName,
+                    'gender'         => $source['gender'],
+                    'age'            => $source['age'],
+                    'birthdate'      => $source['birthdate'],
+                    'phoneNumber'    => $people->phoneNumber,
+                ];
+            }
+        }
+
         return view('admin.person-form', $data);
     }
+
 
     function viewsPeople($hash)
     {

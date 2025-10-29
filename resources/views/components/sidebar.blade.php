@@ -9,7 +9,7 @@
                  <div class="flex pt-4">
                      <a href="/">
                          <img class="size-11 transition-transform duration-500 ease-in-out hover:rotate-[360deg]"
-                             src="{{ asset('images/app-logo.svg') }}" alt="logo" />
+                             src="{{ asset('images/favicon.png') }}" alt="{{ env('APP_NAME') }}" />
                      </a>
                  </div>
                  <!-- Main Sections Links -->
