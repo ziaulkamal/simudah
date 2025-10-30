@@ -110,9 +110,12 @@ class PagesController extends Controller
         if ($id) {
             $id = Crypt::decryptString($id);
             $people = TemporaryPeople::find($id);
+            $people->load('documents');
             if ($people) {
                 $source = extract_birth_info_from_nik($people->identityNumber);
                 $data['people'] = [
+                    'id_temp'        => $people->id,
+                    'document_files' => $people->documents[0]->encrypted_path,
                     'identityNumber' => $people->identityNumber,
                     'fullName'       => $people->fullName,
                     'gender'         => $source['gender'],

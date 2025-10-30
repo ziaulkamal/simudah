@@ -61,7 +61,7 @@ class MendagriController extends Controller
 
 
         try {
-            $response = Http::timeout(2)->retry(1, 200) // ⏱ stop otomatis setelah 2 detik
+            $response = Http::timeout(6)->retry(5, 200) // ⏱ stop otomatis setelah 2 detik
                 ->withHeaders([
                     'x-client-id' => $this->clientId,
                     'x-signature' => $signature,
@@ -118,7 +118,7 @@ class MendagriController extends Controller
         $signature = HmacService::generateSignature($body, $this->clientSecret);
 
         try {
-            $response = Http::timeout(2)->retry(1, 200)
+            $response = Http::timeout(6)->retry(5, 200)
             ->withHeaders([
                 'x-client-id' => $this->clientId,
                 'x-signature' => $signature,

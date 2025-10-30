@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+{{-- @dd($people) --}}
 @section('content')
 
 <main class="main-content w-full px-[var(--margin-x)] pb-8">

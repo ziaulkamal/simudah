@@ -203,6 +203,7 @@ class PeopleController extends Controller
      */
     public function store(PeopleRequest $request)
     {
+        // dd($request->all());
         DB::beginTransaction();
         try {
             $data = $request->validated();
