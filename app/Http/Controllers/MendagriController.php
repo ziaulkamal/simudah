@@ -61,8 +61,7 @@ class MendagriController extends Controller
 
 
         try {
-            $response = Http::timeout(6)->retry(5, 200) // ⏱ stop otomatis setelah 2 detik
-                ->withHeaders([
+            $response = Http::withHeaders([
                     'x-client-id' => $this->clientId,
                     'x-signature' => $signature,
                     'Content-Type' => 'application/json',
@@ -87,12 +86,6 @@ class MendagriController extends Controller
             }
 
             return response()->json($finalData, $response->status());
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            // ❌ Timeout atau koneksi gagal
-            return response()->json([
-                'error' => 'Request Timeout',
-                'message' => 'Gateway tidak merespons dalam 2 detik. Coba lagi nanti.',
-            ], 504);
         } catch (\Throwable $e) {
             // ❌ Error umum lain
             return response()->json([
@@ -118,8 +111,7 @@ class MendagriController extends Controller
         $signature = HmacService::generateSignature($body, $this->clientSecret);
 
         try {
-            $response = Http::timeout(6)->retry(5, 200)
-            ->withHeaders([
+            $response = Http::withHeaders([
                 'x-client-id' => $this->clientId,
                 'x-signature' => $signature,
                 'Content-Type' => 'application/json',
@@ -127,13 +119,7 @@ class MendagriController extends Controller
 
             if ($response->status() === 403) return response()->json(['error' => 'Forbidden: Invalid client credentials'], 403);
             return response()->json($response->json(), $response->status());
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            // ❌ Timeout atau koneksi gagal
-            return response()->json([
-                'error' => 'Request Timeout',
-                'message' => 'Gateway tidak merespons dalam 2 detik. Coba lagi nanti.',
-            ], 504);
-        } catch (\Throwable $e) {
+            }  catch (\Throwable $e) {
             // ❌ Error umum lain
             return response()->json([
                 'error' => 'Failed to connect to Python Gateway API',
