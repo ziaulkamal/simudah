@@ -10,15 +10,21 @@ use Illuminate\Support\Facades\Crypt;
 
 class ActivationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Ambil data temporary beserta dokumen
-        $peoples = TemporaryPeople::with('documents')->latest()->paginate(10);
+        // Ambil nilai per_page dari request (default 10)
+        $perPage = $request->get('per_page', 10);
 
-        // Ambil semua identity_hash dari tabel people untuk perbandingan
+        // Ambil data TemporaryPeople beserta dokumen
+        $peoples = TemporaryPeople::with('documents')
+            ->latest()
+            ->paginate($perPage)
+            ->appends($request->except('page'));
+
+        // Ambil semua identity_hash dari tabel People
         $activatedHashes = People::pluck('identity_hash')->toArray();
 
-        // Tambahkan status aktivasi ke setiap temporary_people
+        // Tambahkan status ke setiap data
         $peoples->getCollection()->transform(function ($temporary) use ($activatedHashes) {
             $temporary->status = in_array($temporary->identity_hash, $activatedHashes)
                 ? 'aktif'
@@ -51,21 +57,19 @@ class ActivationController extends Controller
         return redirect()->route('activation.index')->with('success', 'User berhasil diaktivasi.');
     }
 
-    public function data()
+    public function data(Request $request)
     {
         $peoples = TemporaryPeople::with('documents')->latest()->paginate(10);
 
-        // Ambil semua identity_hash dari People
         $activatedHashes = People::pluck('identity_hash')->toArray();
 
-        $peoplesData = $peoples->map(function($person) use ($activatedHashes) {
+        $mappedData = $peoples->map(function ($person) use ($activatedHashes) {
             return [
                 'id' => Crypt::encryptString($person->id),
                 'fullName' => $person->fullName,
                 'identityNumber' => $person->identityNumber,
                 'phoneNumber' => $person->phoneNumber,
                 'gender' => $person->gender ?? '-',
-                'created_at' => $person->created_at->format('d M Y H:i'),
                 'status' => in_array($person->identity_hash, $activatedHashes) ? 'aktif' : 'belum aktif',
                 'documents' => $person->documents->map(fn($d) => [
                     'id' => $d->id,
@@ -76,9 +80,9 @@ class ActivationController extends Controller
         });
 
         return response()->json([
-            'data' => $peoplesData,
-            'links' => (string) $peoples->links('components.paginations'), // optional pagination html
+            'data' => $mappedData,
+            'from' => $peoples->firstItem(),
+            'pagination' => (string) $peoples->links('components.pagination-simple'),
         ]);
     }
-
 }

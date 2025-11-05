@@ -229,6 +229,8 @@ function peopleForm(id = null) {
                         },
                     }));
 
+                    window.location.href = `{{ route('customer.index') }}`;
+
                     if (method === 'POST') form.reset();
                     return;
                 }

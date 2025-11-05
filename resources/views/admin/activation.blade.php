@@ -5,8 +5,8 @@
     <x-breadcrumb-header title="{{ $title }}" submenu="Aktivasi" />
 
     <div class="card mt-3">
+        <!-- Desktop Table -->
         <div class="overflow-x-auto hidden sm:block">
-            <!-- Table desktop -->
             <table class="table-auto w-full border border-slate-200 dark:border-navy-500 text-left">
                 <thead class="bg-slate-100 dark:bg-navy-800">
                     <tr>
@@ -21,7 +21,7 @@
                 <tbody>
                     <template x-for="(person, index) in peoples" :key="person.id">
                         <tr class="hover:bg-slate-50 dark:hover:bg-navy-600">
-                            <td class="px-4 py-2 border-b" x-text="index + 1"></td>
+                            <td class="px-4 py-2 border-b" x-text="(from - 1) + (index + 1)"></td>
                             <td class="px-4 py-2 border-b" x-text="person.fullName.toUpperCase()"></td>
                             <td class="px-4 py-2 border-b" x-text="person.identityNumber"></td>
                             <td class="px-4 py-2 border-b" x-text="person.phoneNumber"></td>
@@ -38,6 +38,7 @@
                                         class="btn bg-info text-white hover:bg-info-focus hover:shadow-lg">
                                         <i class="fa-solid fa-eye"></i>
                                     </button>
+
                                     <template x-if="person.status === 'belum aktif'">
                                         <form :action="`/activation/activate/${person.id}`" method="POST" @submit.prevent="activateUser(person)">
                                             @csrf
@@ -46,6 +47,7 @@
                                             </button>
                                         </form>
                                     </template>
+
                                     <template x-if="person.status === 'aktif'">
                                         <button class="btn bg-slate-400 text-white cursor-not-allowed" disabled>
                                             <i class="fa-solid fa-lock"></i>
@@ -57,16 +59,24 @@
                     </template>
                 </tbody>
             </table>
+
+            {{-- Pagination Container --}}
+            <div
+                class="text-xs-plus flex justify-center sm:justify-end text-center sm:text-right text-slate-600 dark:text-navy-100 sm:pr-[calc(var(--margin-x)*-1)]"
+                x-html="paginationHtml">
+            </div>
         </div>
 
-        <!-- Mobile: accordion -->
+        <!-- Mobile Accordion -->
         <div class="sm:hidden space-y-2">
             <template x-for="person in peoples" :key="person.id">
                 <div class="border rounded-lg overflow-hidden shadow-sm">
-                    <button @click="person.open = !person.open" class="w-full flex justify-between items-center px-4 py-2 bg-slate-100 dark:bg-navy-800">
+                    <button @click="person.open = !person.open"
+                        class="w-full flex justify-between items-center px-4 py-2 bg-slate-100 dark:bg-navy-800">
                         <span x-text="person.fullName.toUpperCase()"></span>
                         <i :class="person.open ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'"></i>
                     </button>
+
                     <div x-show="person.open" x-transition class="px-4 py-2 bg-white dark:bg-navy-700 space-y-2">
                         <div class="flex justify-between">
                             <span class="font-medium">NIK:</span>
@@ -79,11 +89,10 @@
                         <div class="flex justify-between">
                             <span class="font-medium">Status:</span>
                             <span :class="person.status === 'aktif' ? 'badge bg-success text-white' : 'badge bg-warning text-white'"
-                                x-text="person.status === 'aktif' ? 'Sudah Aktif' : 'Belum Aktif'"></span>
+                                  x-text="person.status === 'aktif' ? 'Sudah Aktif' : 'Belum Aktif'"></span>
                         </div>
                         <div class="flex space-x-2 justify-end pt-2">
-                            <button @click="showKtp(person.documents)"
-                                    class="btn bg-info text-white hover:bg-info-focus hover:shadow-lg">
+                            <button @click="showKtp(person.documents)" class="btn bg-info text-white hover:bg-info-focus hover:shadow-lg">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
                             <template x-if="person.status === 'belum aktif'">
@@ -106,20 +115,16 @@
         </div>
     </div>
 
-
     <!-- Modal Dokumen KTP -->
     <template x-if="ktpModal.open">
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
             <div class="relative w-full max-w-2xl bg-white dark:bg-navy-700 rounded-lg shadow-lg overflow-auto">
-                <!-- Header -->
                 <div class="flex justify-between items-center bg-slate-200 dark:bg-navy-800 px-4 py-3 rounded-t-lg">
                     <h3 class="text-lg font-semibold text-slate-700 dark:text-navy-100">Dokumen KTP</h3>
                     <button @click="closeKtpModal()" class="text-slate-500 hover:text-slate-700 dark:hover:text-navy-100">
                         <i class="fa-solid fa-xmark text-xl"></i>
                     </button>
                 </div>
-
-                <!-- Body -->
                 <div class="p-4 grid grid-cols-1 gap-4 justify-items-center">
                     <template x-for="doc in ktpModal.documents" :key="doc.id">
                         <div class="w-full flex justify-center">
@@ -133,50 +138,82 @@
             </div>
         </div>
     </template>
-
 </main>
-
+<x-modal-confirm />
 <script>
 function activationPage() {
-    return {
-        peoples: [],
-        ktpModal: { open: false, documents: [] },
+  return {
+    peoples: [],
+    paginationHtml: '',
+    from: 1,
 
-        init() {
-            fetch('{{ route('activation.data') }}')
-                .then(res => res.json())
-                .then(res => {
-                    this.peoples = res.data;
-                });
-        },
+    init() {
+      this.loadData('{{ route('activation.data') }}');
+    },
 
-        // Tampilkan modal dokumen KTP
-        showKtp(documents) {
-            this.ktpModal.documents = documents.filter(d => d.type.toLowerCase().includes('ktp'));
-            this.ktpModal.open = true;
-        },
+    loadData(url) {
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          this.peoples = data.data;
+          this.paginationHtml = data.pagination;
+          this.from = Number(data.from) || 1;
+          this.bindPaginationLinks();
+        })
+        .catch(err => console.error('Error load data:', err));
+    },
 
-        closeKtpModal() {
-            this.ktpModal.open = false;
-            this.ktpModal.documents = [];
-        },
+    bindPaginationLinks() {
+      this.$nextTick(() => {
+        document.querySelectorAll('.pagination a').forEach(link => {
+          link.addEventListener('click', e => {
+            e.preventDefault();
+            this.loadData(link.href);
+          });
+        });
+      });
+    },
 
-        activateUser(person) {
-            if (!confirm('Aktifkan user ini?')) return;
+    showKtp(documents) {
+      this.ktpModal.documents = documents.filter(d => d.type.toLowerCase().includes('ktp'));
+      this.ktpModal.open = true;
+    },
 
-            fetch(`/activation/activate/${person.id}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            }).then(() => {
-                person.status = 'aktif';
-                // redirect ke route add-pelanggan dengan ID person
-                window.location.href = `/add-pelanggan/${person.id}`;
-            });
-        }
-    };
+    closeKtpModal() {
+      this.ktpModal.open = false;
+      this.ktpModal.documents = [];
+    },
+
+    activateUser(person) {
+  window.dispatchEvent(new CustomEvent('show-confirm', {
+    detail: {
+      title: 'Aktivasi Pengguna',
+      message: `Apakah anda ingin lanjutkan aktivasi pengguna ${person.fullName} dengan Nomor Induk Kependudukan ${person.identityNumber} ?`,
+      yes: () => {
+        fetch(`/activation/activate/${person.id}`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+          }
+        }).then(() => {
+          person.status = 'aktif';
+          window.location.href = `/add-pelanggan/${person.id}`;
+        });
+      },
+      no: () => {
+        console.log('Aktivasi dibatalkan');
+      }
+    }
+  }));
+},
+
+    ktpModal: {
+      open: false,
+      documents: [],
+    },
+  };
 }
+
 </script>
 @endsection

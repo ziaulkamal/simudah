@@ -8,6 +8,7 @@ use App\Models\People;
 
 use App\Models\PeopleCategoryHistory;
 use App\Models\Role;
+use App\Models\TemporaryPeople;
 use App\Models\Transaction;
 use Exception;
 use Illuminate\Http\Request;
@@ -203,21 +204,44 @@ class PeopleController extends Controller
      */
     public function store(PeopleRequest $request)
     {
-        // dd($request->all());
+        // dd($request->identityNumber);
         DB::beginTransaction();
         try {
             $data = $request->validated();
+
+            // Hitung umur
             $data['age'] = (new \DateTime())->diff(new \DateTime($data['birthdate']))->y;
 
+            // Set role default jika kosong
             if (empty($data['role_id'])) {
                 $defaultRole = Role::where('status', 'active')->orderByDesc('level')->first();
                 $data['role_id'] = $defaultRole->id ?? null;
             }
 
+            // Generate hash untuk identityNumber
+            $identityHash = TemporaryPeople::generateHmac($request->identityNumber);
+
+            // Cari apakah data ada di temporary
+            $temporary = TemporaryPeople::where('identity_hash', $identityHash)->first();
+
+            // Simpan data People
             $people = People::create($data);
+
+            // Jika ditemukan di TemporaryPeople, hapus semua yang punya identity_hash sama
+            if ($temporary) {
+                TemporaryPeople::where('identity_hash', $identityHash)->delete();
+            }
+
             DB::commit();
 
-            return $this->respond(true, 'Berhasil Disimpan', 'Data pelanggan berhasil disimpan.', $people, 'success', 201);
+            return $this->respond(
+                true,
+                'Berhasil Disimpan',
+                'Data pelanggan berhasil disimpan.',
+                $people,
+                'success',
+                201
+            );
         } catch (\Illuminate\Database\QueryException $e) {
             // Tangani Duplicate Entry (kode 23000)
             if ($e->getCode() === '23000') {
