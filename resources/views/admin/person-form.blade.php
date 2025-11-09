@@ -228,9 +228,9 @@ function peopleForm(id = null) {
                             message: data.message || 'Data pelanggan berhasil disimpan.',
                         },
                     }));
-
-                    window.location.href = `{{ route('customer.index') }}`;
-
+                    setTimeout(() => {
+                        window.location.href = `{{ route('customer.index') }}`;
+                    }, 2000); // 2000 ms = 2 detik
                     if (method === 'POST') form.reset();
                     return;
                 }

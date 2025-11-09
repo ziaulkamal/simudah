@@ -41,8 +41,8 @@ Route::get('/api/districts/{regencyId}', [MendagriController::class, 'getDistric
 Route::get('/api/villages/{districtId}', [MendagriController::class, 'getVillages']);
 
 
-
-Route::get('/', [PagesController::class, 'dashboard'])->name('dashboard')->middleware('check.session:1,2,3');
+// ->middleware('check.session:1,2,3')
+Route::get('/', [PagesController::class, 'dashboard'])->name('dashboard');
 Route::get('addons', [PagesController::class, 'addons'])->name('addons');
 
 Route::get('add-pelanggan/{id?}', [PagesController::class, 'insertPeoples'])->name('customer.create');
@@ -61,11 +61,18 @@ Route::prefix('profile')->name('profile.')->group(function () {
 });
 
 Route::get('transaksi', [PagesController::class, 'transaction'])->name('transaction.index');
+Route::get('kategori', [PagesController::class, 'categoryList'])->name('category.index');
+
 Route::get('auth-login', function () { return view('auth.login'); })->name('auth.login');
 
 Route::prefix('user')->group(function () {
     Route::get('/add-user', [PagesController::class, 'userForm'])->name('user.create');
     Route::get('/list', [PagesController::class, 'userList'])->name('user.list');
+});
+
+Route::prefix('category')->group(function () {
+    Route::get('/category-add', [PagesController::class, 'insertCategory'])->name('category.create');
+    Route::get('/', [PagesController::class, 'categoryList'])->name('category.list');
 });
 
 Route::post('/send-otp', [OtpController::class, 'sendOtp'])->name('send.otp');

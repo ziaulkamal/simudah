@@ -4,6 +4,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use App\Http\Middleware\HideHeaders;
+
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'verify.app' => \App\Http\Middleware\VerifyAppAccess::class,
             'check.session' => \App\Http\Middleware\CheckLoginSession::class,
         ]);
+        $middleware->web(HideHeaders::class);
+        $middleware->api(HideHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

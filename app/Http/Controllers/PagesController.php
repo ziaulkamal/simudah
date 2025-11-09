@@ -281,4 +281,38 @@ class PagesController extends Controller
         ];
         return view('admin.user-list', $data);
     }
+    /**
+     * Halaman daftar category.
+     */
+
+    public function categoryList(Request $request)
+    {
+        $query = Category::query();
+        $categories = $query->paginate(10)->withQueryString();
+
+        $data = [
+            'title'         => 'Kategori',
+            'menu'          => 'user',
+            'submenu'       => 'List Kategori',
+            'titleMenus'    => 'Kategori Pelanggan',
+            'sectionMenu'   => 'secondary-menu',
+            'categories'         => $categories,
+        ];
+        return view('admin.category-list', $data);
+    }
+
+
+    public function insertCategory()
+    {
+
+        $data = [
+            'title'         => 'Tambah Kategori',
+            'menu'          => 'user',
+            'submenu'       => 'Tambah Kategori',
+            'titleMenus'    => 'Tambah Kategori',
+            'sectionMenu'   => 'secondary-menu',
+
+        ];
+        return view('admin.category-form', $data);
+    }
 }

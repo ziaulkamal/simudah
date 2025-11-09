@@ -98,8 +98,8 @@
         </div>
     </form>
 </main>
-{{-- === KOMONEN MODAL GLOBAL === --}}
-<x-modal />
+
+
 <script>
 document.addEventListener('alpine:init', () => {
     Alpine.data('userFormHandler', () => ({
@@ -110,7 +110,7 @@ document.addEventListener('alpine:init', () => {
             const formData = new FormData(form);
 
             try {
-                const response = await fetch("{{ route('secureuser.store') }}", {
+                const response = await fetch("/api/accounts/users", {
                     method: "POST",
                     headers: { "Accept": "application/json" },
                     body: formData
@@ -119,35 +119,24 @@ document.addEventListener('alpine:init', () => {
                 const data = await response.json();
                 this.loading = false;
 
-                if (response.ok) {
+                if (response.ok && data.success) {
                     window.dispatchEvent(new CustomEvent('show-alert', {
                         detail: {
                             type: 'success',
                             title: 'Berhasil!',
-                            message: `User ${data.user.username} berhasil disimpan.`
+                            message: data.message || `User ${data.data?.username ?? ''} berhasil disimpan.`
                         }
                     }));
                     form.reset();
                 } else {
-                    // Ambil pesan error utama
                     let messages = [];
-
-                    // Pesan utama dari server
-                    if (data.message) {
-                        messages.push(data.message);
-                    }
-
-                    // Pesan detail per field (jika ada)
+                    if (data.message) messages.push(data.message);
                     if (data.errors) {
                         for (const field in data.errors) {
-                            // Gabung semua error field (biasanya 1, tapi aman kalau lebih)
                             messages.push(...data.errors[field]);
                         }
                     }
-
-                    // Satukan jadi 1 string dengan baris baru
                     const finalMessage = messages.join('\n');
-
                     window.dispatchEvent(new CustomEvent('show-alert', {
                         detail: {
                             type: 'error',
@@ -167,5 +156,4 @@ document.addEventListener('alpine:init', () => {
     }));
 });
 </script>
-
 @endsection

@@ -1,7 +1,6 @@
 <?php
 
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\OtpController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MendagriController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PeopleController;
@@ -10,12 +9,6 @@ use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\SystemLogController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
-
-
-
-
-
-
 
 
 Route::prefix('mendagri')->group(function () {
@@ -49,13 +42,24 @@ Route::prefix('transactions')->group(function () {
     Route::post('/{id}/pay', [PaymentController::class, 'payTransaction']); // bayar transaksi
 });
 
-Route::prefix('secure-users')->group(function () {
-    Route::get('/', [SecureUserController::class, 'index']);
-    Route::post('/', [SecureUserController::class, 'store'])->name('secureuser.store');
-    Route::get('{id}', [SecureUserController::class, 'show']);
-    Route::put('{id}', [SecureUserController::class, 'update']);
-    Route::patch('{id}', [SecureUserController::class, 'update']);
-    Route::delete('{id}', [SecureUserController::class, 'destroy']);
+Route::prefix('accounts')->controller(SecureUserController::class)->group(function () {
+    Route::get('/users', 'index');
+    Route::post('/users', 'store');
+    Route::get('/users/{id}/edit', 'edit');
+    Route::put('/users/{id}', 'update');
+    Route::delete('/users/{id}', 'destroy');
+});
+/*
+|--------------------------------------------------------------------------
+| Category Routes via GlobalController
+|--------------------------------------------------------------------------
+*/
+Route::prefix('categories')->controller(CategoryController::class)->group(function () {
+    Route::get('/', 'index');       // GET /api/categories
+    Route::post('/', 'store')->name('categories.store');      // POST /api/categories
+    Route::get('/{id}', 'edit');    // GET /api/categories/{id}
+    Route::put('/{id}', 'update');  // PUT /api/categories/{id}
+    Route::delete('/{id}', 'destroy'); // DELETE /api/categories/{id}
 });
 
 Route::get('/logs', [SystemLogController::class, 'index']);

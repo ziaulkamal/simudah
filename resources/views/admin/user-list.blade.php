@@ -3,6 +3,7 @@
 @section('content')
 <main
     x-data="userListHandler()"
+    x-init="loadUsers()"
     class="main-content w-full px-[var(--margin-x)] pb-8"
 >
     <x-breadcrumb-header
@@ -34,53 +35,57 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($users as $user)
-                            <tr id="user-row-{{ $user->id }}" class="border-b border-slate-200 dark:border-navy-500">
-                                <td class="px-4 py-3">{{ $users->firstItem() + $loop->index }}</td>
-                                <td class="px-4 py-3 font-medium text-slate-700 dark:text-navy-50">
-                                    {{ $user->username }}
-                                </td>
-                                <td class="px-4 py-3">{{ $user->role->name ?? '-' }}</td>
-                                <td class="px-4 py-3">
-                                    <x-status-badge :status="$user->status" />
-                                </td>
-                                <td class="px-4 py-3">{{ $user->created_at->format('d M Y') }}</td>
-                                <td class="px-4 py-3 text-center space-x-2">
-
-
-                                    <button type="button"
-                                            @click="confirmDelete({{ $user->id }}, '{{ $user->username }}')"
+                        <template x-if="users.length > 0">
+                            <template x-for="(user, index) in users" :key="user.id">
+                                <tr :id="`user-row-${user.id}`" class="border-b border-slate-200 dark:border-navy-500">
+                                    <td class="px-4 py-3" x-text="index + 1"></td>
+                                    <td class="px-4 py-3 font-medium text-slate-700 dark:text-navy-50" x-text="user.username"></td>
+                                    <td class="px-4 py-3" x-text="user.role?.name ?? '-'"></td>
+                                    <td class="px-4 py-3">
+                                        <x-status-badge :status="''" x-bind:status="user.status"></x-status-badge>
+                                    </td>
+                                    <td class="px-4 py-3" x-text="new Date(user.created_at).toLocaleDateString('id-ID')"></td>
+                                    <td class="px-4 py-3 text-center space-x-2">
+                                        <button type="button"
+                                            @click="confirmDelete(user.id, user.username)"
                                             class="btn space-x-2 bg-error font-medium text-white hover:bg-error-focus hover:shadow-lg">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        @empty
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </template>
+                        <template x-if="users.length === 0">
                             <tr>
                                 <td colspan="6" class="py-4 text-center text-slate-500">Tidak ada data ditemukan</td>
                             </tr>
-                        @endforelse
+                        </template>
                     </tbody>
                 </table>
-            </div>
-
-            {{-- Pagination --}}
-            <div class="text-xs-plus flex justify-center sm:justify-end text-slate-600 dark:text-navy-100 sm:pr-[calc(var(--margin-x)*-1)]">
-                {{ $users->links('components.paginations') }}
             </div>
         </div>
     </div>
 
-    {{-- Komponen Modal Global --}}
-    <x-modal />
 </main>
 
 @push('scripts')
 <script>
 document.addEventListener('alpine:init', () => {
     Alpine.data('userListHandler', () => ({
+        users: [],
+        async loadUsers() {
+            try {
+                const response = await fetch("/api/accounts/users", { headers: { "Accept": "application/json" } });
+                const data = await response.json();
+                this.users = data.data ?? data;
+            } catch (error) {
+                console.error(error);
+                window.dispatchEvent(new CustomEvent('show-alert', {
+                    detail: { type: 'error', title: 'Error', message: 'Gagal memuat data pengguna.' }
+                }));
+            }
+        },
         async confirmDelete(id, username) {
-            // Tampilkan modal konfirmasi
             window.dispatchEvent(new CustomEvent('show-confirm-modal', {
                 detail: {
                     type: 'warning',
@@ -90,46 +95,27 @@ document.addEventListener('alpine:init', () => {
                 }
             }));
         },
-
         async deleteUser(id, username) {
             try {
-                const response = await fetch(`/api/secure-users/${id}`, {
+                const response = await fetch(`/api/accounts/users/${id}`, {
                     method: 'DELETE',
-                    headers: {
-                        'Accept': 'application/json',
-                    }
+                    headers: { 'Accept': 'application/json' }
                 });
-
                 const data = await response.json();
-
                 if (response.ok) {
-                    // Hapus baris dari tabel
-                    document.getElementById(`user-row-${id}`)?.remove();
-
+                    this.users = this.users.filter(u => u.id !== id);
                     window.dispatchEvent(new CustomEvent('show-alert', {
-                        detail: {
-                            type: 'success',
-                            title: 'Berhasil!',
-                            message: `User "${username}" berhasil dihapus.`
-                        }
+                        detail: { type: 'success', title: 'Berhasil!', message: `User "${username}" berhasil dihapus.` }
                     }));
                 } else {
                     window.dispatchEvent(new CustomEvent('show-alert', {
-                        detail: {
-                            type: 'error',
-                            title: 'Gagal!',
-                            message: data.message || 'Gagal menghapus user.'
-                        }
+                        detail: { type: 'error', title: 'Gagal!', message: data.message || 'Gagal menghapus user.' }
                     }));
                 }
             } catch (error) {
                 console.error(error);
                 window.dispatchEvent(new CustomEvent('show-alert', {
-                    detail: {
-                        type: 'error',
-                        title: 'Error',
-                        message: 'Terjadi kesalahan saat menghapus data.'
-                    }
+                    detail: { type: 'error', title: 'Error', message: 'Terjadi kesalahan saat menghapus data.' }
                 }));
             }
         }
