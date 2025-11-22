@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\People;
+use App\Models\SecureUser;
+use App\Services\AuthService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Http\Request;
@@ -14,6 +16,12 @@ use Illuminate\Support\Facades\Session;
 
 class OtpController extends Controller
 {
+    private AuthService $auth;
+
+    public function __construct(AuthService $auth)
+    {
+        $this->auth = $auth;
+    }
     /**
      * Kirim OTP
      */
@@ -90,7 +98,10 @@ class OtpController extends Controller
         }
 
         $cachedOtp = Cache::get('otp_' . $request->person_id);
+        $person = People::with('role')->find($request->person_id);
 
+        // Cari secureUser jika ada relasi
+        $secure = SecureUser::with('role')->where('people_id', $person->id)->first();
         // Log::info('verifyOtp compare', ['person_id' => $request->person_id, 'otp_received' => $otp, 'otp_cached' => $cachedOtp]);
 
         if (!$cachedOtp || (string)$cachedOtp !== (string)$otp) {
@@ -100,20 +111,20 @@ class OtpController extends Controller
                 'message' => 'OTP salah atau sudah kadaluarsa'
             ], 401);
         }
+        // Session builder
+        $result = app(AuthService::class)->makeUnifiedSession(
+            authType: 'people',
+            secureUser: $secure,
+            people: $person
+        );
 
-        // OTP valid → buat session 2 jam
-        Session::put('login_id', $request->person_id);
-        Session::put('login_type', 'people');
-        Session::put('role_id', $person->role_id ?? 3); // 👈 default role pelanggan (misal 3)
-        Session::put('login_time', now());
-        Session::put('expires_at', now()->addHours(2));
-
-        // Hapus OTP dari cache
         Cache::forget('otp_' . $request->person_id);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Login berhasil'
+            'message' => 'Login berhasil',
+            'data' => $result['session'],
+            'signature_session' => $result['signature_session']
         ]);
     }
 

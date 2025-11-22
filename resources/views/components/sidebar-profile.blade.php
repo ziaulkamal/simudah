@@ -1,3 +1,22 @@
+@php
+$auth = session('auth');
+
+$login_name =
+    $auth['people']['fullName']
+    ?? $auth['secure_user']['username']
+    ?? 'Guest User';
+
+$role_name =
+    $auth['secure_user']['role']
+    ?? $auth['people']['role']
+    ?? 'Pelanggan';
+
+$level =
+    $auth['secure_user']['level']
+    ?? $auth['people']['level']
+    ?? null;
+@endphp
+
 <div class="flex flex-col items-center space-y-3 py-3">
     <!-- Profile Dropdown -->
     <div x-data="usePopper({placement:'right-end',offset:12})"
@@ -25,10 +44,11 @@
                     </div>
                     <div>
                         <p class="text-base font-medium text-slate-700 dark:text-navy-100">
-                            {{ session('login_name', 'Guest User') }}
+                           {{ $login_name ?? 'Guest Account' }}
                         </p>
                         <p class="text-xs text-slate-400 dark:text-navy-300">
-                            {{ session('role_name', 'Pelanggan') }}
+                            {{ $role_name ?? 'Disable' }}
+
                         </p>
                     </div>
                 </div>

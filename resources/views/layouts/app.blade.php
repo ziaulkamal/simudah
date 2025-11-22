@@ -75,7 +75,13 @@
           document.documentElement.classList.add("dark");
       }
     </script>
-
+    <script>
+        window.APP_SESSION = {
+            loginName: @json($loginName),
+            roleName: @json($roleName),
+            signature: @json($signatureSession),
+        };
+    </script>
     @stack('styles')
 </head>
 
@@ -99,6 +105,15 @@
       window.addEventListener("DOMContentLoaded", () => Alpine.start());
     </script>
         <!-- Komponen modal alert -->
-
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.APP_SESSION?.signature) {
+                localStorage.setItem(
+                    "signature_session",
+                    JSON.stringify(window.APP_SESSION.signature)
+                );
+            }
+        });
+    </script>
   </body>
 </html>

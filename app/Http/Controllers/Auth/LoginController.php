@@ -3,16 +3,23 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\People;
 use App\Models\SecureUser;
+use App\Services\AuthService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
+    private AuthService $auth;
+
+    public function __construct(AuthService $auth)
+    {
+        $this->auth = $auth;
+    }
     /**
      * Endpoint login utama
      * Bisa login via NIK+HP (People) atau Username+Password (SecureUser)
@@ -43,10 +50,10 @@ class LoginController extends Controller
             'phoneNumber'    => 'required|string',
         ]);
 
-        $identityHash = People::generateHmac($request->identityNumber);
+        $hash = People::generateHmac($request->identityNumber);
 
         $person = People::with(['role', 'district', 'village'])
-            ->where('identity_hash', $identityHash)
+            ->where('identity_hash', $hash)
             ->where('phoneNumber', $request->phoneNumber)
             ->first();
 
@@ -57,28 +64,23 @@ class LoginController extends Controller
             ], 401);
         }
 
-        $this->createSession($person->id, 'people', $person->role_id, remember: $request->boolean('remember'));
+        // Cek apakah People memiliki SecureUser
+        $secure = SecureUser::with('role')->where('people_id', $person->id)->first();
 
-        Log::info('Login success (People)', [
-            'person_id' => $person->id,
-            'fullName'  => $person->fullName,
-            'phone'     => $person->phoneNumber,
-        ]);
+        // Gunakan unified session builder
+        $session = $this->auth->makeUnifiedSession(
+            authType: 'people',
+            secureUser: $secure,
+            people: $person
+        );
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'Login successful (identity)',
-            'data'    => [
-                'id'        => $person->id,
-                'fullName'  => $person->fullName,
-                'role'      => $person->role?->name,
-                'level'     => $person->role?->level,
-                'phone'     => $person->phoneNumber,
-                'district'  => $person->district?->name,
-                'village'   => $person->village?->name,
-            ],
+            'data' => $session
         ]);
     }
+
 
     /**
      * Login menggunakan username + password
@@ -102,53 +104,24 @@ class LoginController extends Controller
             ], 401);
         }
 
-        // ✅ Jika user belum punya People, buat data sementara di session saja
-        if (!$user->people) {
-            $tempPeople = [
-                'id'        => 'temp-' . $user->id,
-                'fullName'  => 'Temporary User ' . strtoupper(Str::random(4)),
-                'phoneNumber' => 'TEMP-' . time(),
-                'role_id'   => $user->role_id,
-            ];
+        // Jika SecureUser punya relasi People, ikutkan
+        $person = $user->people;
 
-            // Simpan ke session (bukan DB)
-            Session::put('temp_people', $tempPeople);
-        }
-
-        // Ambil ID login (pakai people_id jika ada, atau user_id jika tidak)
-        $loginId = $user->people_id ?? $user->id;
-        $this->createSession($loginId, 'secure', $user->role_id, remember: $request->boolean('remember'));
-
-        Log::info('Login success (SecureUser)', [
-            'user_id'   => $user->id,
-            'username'  => $user->username,
-            'role'      => $user->role?->name,
-            'people_id' => $user->people_id,
-        ]);
-
-        // Ambil data people, bisa dari DB atau session temp
-        $peopleData = $user->people
-            ? [
-                'id'        => $user->people->id,
-                'name'      => $user->people->fullName,
-                'phone'     => $user->people->phoneNumber,
-                'district'  => $user->people->district?->name,
-                'village'   => $user->people->village?->name,
-            ]
-            : Session::get('temp_people');
+        // Buat unified session + signature_session
+        $result = $this->auth->makeUnifiedSession(
+            authType: 'secure_user',
+            secureUser: $user,
+            people: $person
+        );
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'Login successful (user)',
-            'data'    => [
-                'id'        => $user->id,
-                'username'  => $user->username,
-                'role'      => $user->role?->name,
-                'level'     => $user->role?->level,
-                'people'    => $peopleData,
-            ],
+            'data'    => $result['session'],
+            'signature_session' => $result['signature_session'],
         ]);
     }
+
 
 
     /**
@@ -178,7 +151,7 @@ class LoginController extends Controller
     public function me()
     {
         if (!Session::has('login_id')) {
-            return response()->json(['status' => 'error', 'message' => 'Not logged in'], 401);
+            return response()->json(session()->all(), 401);
         }
 
         if (Session::get('login_type') === 'secure') {

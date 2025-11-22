@@ -10,10 +10,12 @@ use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\SelfRegistrationController;
 use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\SystemLogController;
-use Illuminate\Support\Facades\Route;
+use App\Models\TemporaryPeopleDocument;
 use App\Services\SecureFileService;
 use Illuminate\Support\Facades\Response;
-use App\Models\TemporaryPeopleDocument;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Session;
+
 
 Route::get('/admin/activation/data', [ActivationController::class, 'data'])->name('activation.data');
 
@@ -35,14 +37,17 @@ Route::get('/storage/file/{id}', function ($id) {
 
 // ✅ Rute wilayah dinamis
 
-Route::get('/api/provinces', [MendagriController::class, 'getProvinces']);
-Route::get('/api/regencies/{provinceId}', [MendagriController::class, 'getRegencies']);
-Route::get('/api/districts/{regencyId}', [MendagriController::class, 'getDistricts']);
-Route::get('/api/villages/{districtId}', [MendagriController::class, 'getVillages']);
+// Route::get('/api/provinces', [MendagriController::class, 'getProvinces']);
+// Route::get('/api/regencies/{provinceId}', [MendagriController::class, 'getRegencies']);
+// Route::get('/api/districts/{regencyId}', [MendagriController::class, 'getDistricts']);
+// Route::get('/api/villages/{districtId}', [MendagriController::class, 'getVillages']);
 
 
 // ->middleware('check.session:1,2,3')
 Route::get('/', [PagesController::class, 'dashboard'])->name('dashboard');
+// Route::get('/', function () {
+//     dd(Session::all());
+// })->name('dashboard');
 Route::get('addons', [PagesController::class, 'addons'])->name('addons');
 
 Route::get('add-pelanggan/{id?}', [PagesController::class, 'insertPeoples'])->name('customer.create');

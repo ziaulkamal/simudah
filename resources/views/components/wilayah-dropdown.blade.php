@@ -83,7 +83,11 @@ function wilayahDropdown() {
         streetAddress: '',
 
         async init() {
-            const res = await fetch('/api/provinces');
+            const res = await fetch('/api/provinces', {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
             this.provinces = await res.json();
 
             document.addEventListener('updateWilayah', async (event) => {
@@ -122,7 +126,11 @@ function wilayahDropdown() {
 
         async loadRegencies() {
             if (!this.selectedProvince) return;
-            const res = await fetch(`/api/regencies/${this.selectedProvince}`);
+            const res = await fetch(`/api/regencies/${this.selectedProvince}`, {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
             this.regencies = await res.json();
             this.districts = {};
             this.villages = {};
@@ -130,14 +138,22 @@ function wilayahDropdown() {
 
         async loadDistricts() {
             if (!this.selectedRegency) return;
-            const res = await fetch(`/api/districts/${this.selectedRegency}`);
+            const res = await fetch(`/api/districts/${this.selectedRegency}`, {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
             this.districts = await res.json();
             this.villages = {};
         },
 
         async loadVillages() {
             if (!this.selectedDistrict) return;
-            const res = await fetch(`/api/villages/${this.selectedDistrict}`);
+            const res = await fetch(`/api/villages/${this.selectedDistrict}`, {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
             this.villages = await res.json();
         }
     };

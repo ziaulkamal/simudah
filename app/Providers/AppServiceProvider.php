@@ -19,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        view()->composer('*', function ($view) {
+            $view->with('loginName', session('login_name'));
+            $view->with('roleName', session('role_name'));
+            $view->with('signatureSession', session('signature_session'));
+        });
     }
 }

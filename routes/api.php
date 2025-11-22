@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MendagriController;
 use App\Http\Controllers\PaymentController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\SystemLogController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
+
 
 
 Route::prefix('mendagri')->group(function () {
@@ -63,6 +65,12 @@ Route::prefix('categories')->controller(CategoryController::class)->group(functi
 });
 
 Route::get('/logs', [SystemLogController::class, 'index']);
+Route::get('/me', [LoginController::class, 'me'])->middleware(['ajax.same.origin'])->name('me');
 
-
+Route::middleware(['ajax.same.origin'])->group(function () {
+    Route::get('/provinces', [MendagriController::class, 'getProvinces']);
+    Route::get('/regencies/{provinceId}', [MendagriController::class, 'getRegencies']);
+    Route::get('/districts/{regencyId}', [MendagriController::class, 'getDistricts']);
+    Route::get('/villages/{districtId}', [MendagriController::class, 'getVillages']);
+});
 Route::get('signature', [SignatureController::class, 'signatures'])->name('signature');
