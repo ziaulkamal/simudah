@@ -179,11 +179,45 @@ function transactionsTable() {
         },
 
         currentMonthTotal() {
+            if (!this.people || !this.people.category) return 0;
+
             const now = new Date();
-            return this.transactions
-                .filter(t => parseInt(t.month) === now.getMonth() + 1 && parseInt(t.year) === now.getFullYear())
-                .reduce((sum, t) => sum + (t.amount || 0), 0);
+            const currentMonth = now.getMonth() + 1;
+            const currentYear = now.getFullYear();
+            const monthlyAmount = parseFloat(this.people.category.price) || 0;
+
+            // Tentukan bulan terakhir ada transaksi yang dibayar atau pending
+            let lastPaidMonth = 0;
+            let lastPaidYear = 0;
+
+            this.transactions.forEach(t => {
+                if (t.status === 'paid' || t.status === 'pending') {
+                    const tMonth = parseInt(t.month);
+                    const tYear = parseInt(t.year);
+                    if (tYear > lastPaidYear || (tYear === lastPaidYear && tMonth > lastPaidMonth)) {
+                        lastPaidMonth = tMonth;
+                        lastPaidYear = tYear;
+                    }
+                }
+            });
+
+            // Hitung jumlah bulan tertunda dari bulan terakhir sampai bulan sekarang
+            let monthsPending = 0;
+            let year = lastPaidYear;
+            let month = lastPaidMonth + 1;
+
+            while (year < currentYear || (year === currentYear && month <= currentMonth)) {
+                monthsPending++;
+                month++;
+                if (month > 12) {
+                    month = 1;
+                    year++;
+                }
+            }
+
+            return monthsPending * monthlyAmount;
         },
+
 
         // === Modal Trigger ===
         openConfirmModal() {

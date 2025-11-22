@@ -132,7 +132,7 @@
 
 @push('scripts')
 {{-- ✅ Modal Notifikasi Global --}}
-<div
+{{-- <div
     x-data="{ open: false, type: 'info', title: '', message: '' }"
     x-on:show-alert.window="
         open = true;
@@ -179,7 +179,7 @@
         </button>
         </div>
     </div>
-</div>
+</div> --}}
 <script>
 function peopleForm(id = null) {
     return {

@@ -48,8 +48,8 @@ class TransactionController extends Controller
                 'month' => $trx->month,
                 'year' => $trx->year,
                 'status' => $trx->status,
-                'paid_at' => $trx->paid_at ? Carbon::parse($trx->paid_at)->format('d/m/Y H:i') : '-',
-                'due_date' => $trx->due_date ? date_time_id(Carbon::parse($trx->due_date)->format('d/m/Y H:i')) : '-',
+                'paid_at' => $trx->paid_at ? date_time_id(($trx->paid_at), false) : '-',
+                'due_date' => $trx->due_date ? date_time_id(($trx->due_date), false) : '-',
             ];
         })->filter()->values(); // remove null
 
@@ -245,8 +245,8 @@ class TransactionController extends Controller
                 'month' => $trx->month,
                 'year' => $trx->year,
                 'status' => $trx->status,
-                'paid_at' => date_time_id($trx->paid_at?->format('d/m/Y H:i'), false) ?? '-',
-                'due_date' => date_time_id($trx->due_date?->format('d/m/Y H:i'), false) ?? '-',
+                'paid_at' => date_time_id($trx->paid_at, false) ?? '-',
+                'due_date' => date_time_id($trx->due_date, false) ?? '-',
             ];
         });
 

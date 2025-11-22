@@ -20,7 +20,11 @@ class SecureUserController extends GlobalController
     public function index()
     {
         try {
-            $users = $this->modelClass::with(['role', 'people'])->get();
+            $users = $this->modelClass::with(['role', 'people'])
+                ->whereHas('role', function ($query) {
+                    $query->where('level', '!=', 99); // exclude role level 99
+                })
+                ->get();
 
             return response()->json([
                 'success' => true,
@@ -34,6 +38,7 @@ class SecureUserController extends GlobalController
             ], 500);
         }
     }
+
 
     /**
      * ✅ POST - Simpan pengguna baru
