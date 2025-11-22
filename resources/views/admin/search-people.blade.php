@@ -121,7 +121,7 @@
     </template>
 
     <!-- Modal Component -->
-    <x-modal />
+    {{-- <x-modal /> --}}
 </main>
 
 <script>

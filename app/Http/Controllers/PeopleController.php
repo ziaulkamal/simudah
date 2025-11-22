@@ -13,6 +13,7 @@ use App\Models\Transaction;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PeopleController extends Controller
 {
@@ -214,7 +215,10 @@ class PeopleController extends Controller
 
             // Set role default jika kosong
             if (empty($data['role_id'])) {
-                $defaultRole = Role::where('status', 'active')->orderByDesc('level')->first();
+                $defaultRole = Role::where('status', 'active')
+                    ->where('level', 3)
+                    ->first()
+                    ?? Role::where('status', 'active')->orderByDesc('level')->first();
                 $data['role_id'] = $defaultRole->id ?? null;
             }
 
@@ -459,6 +463,25 @@ class PeopleController extends Controller
                 $dueDate = $lastPending->due_date; // pakai due_date sebelumnya jika ada
             }
 
+            // ❗ Jika kategori kosong, skip transaksi baru
+            if (!$people->category_id || !$people->category) {
+
+                Log::warning('Reaktivasi: transaksi baru dilewati karena category_id null', [
+                    'people_id' => $people->id,
+                    'category_id' => $people->category_id
+                ]);
+
+                DB::commit();
+
+                $people->load(['role', 'category', 'transactions' => fn($q) => $q->latest('id')->limit(15)]);
+
+                return $this->respond(
+                    true,
+                    'Akun Diaktifkan',
+                    'Akun berhasil diaktifkan kembali tanpa pembuatan transaksi baru karena kategori kosong.',
+                    ['people' => $people]
+                );
+            }
             // 3️⃣ Buat transaksi baru untuk bulan depan
             $transaction = Transaction::create([
                 'transaction_code' => 'TRX-' . strtoupper(uniqid()),
@@ -492,6 +515,11 @@ class PeopleController extends Controller
                 ]
             ]);
         } catch (Exception $e) {
+            Log::error('Gagal mengaktifkan ulang akun pelanggan', [
+                'people_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             DB::rollBack();
             return $this->respond(false, 'Gagal Mengaktifkan Akun', $e->getMessage(), null, 'error', 500);
         }

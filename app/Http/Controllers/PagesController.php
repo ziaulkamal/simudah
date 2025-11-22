@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Crypt;
 class PagesController extends Controller
 {
     function dashboard()  {
+
         $data = [
             'title'         => 'Dashboard',
             'menu'          => 'dashboard',
@@ -202,10 +203,10 @@ class PagesController extends Controller
     public function viewTransactions()
     {
         $data = [
-            'title'         => 'Detail Transaksi Pelanggan',
-            'menu'          => 'Detail Transaksi Pelanggan',
-            'submenu'       => '',
-            'titleMenus'    => 'Transaksi Pelanggan',
+            'title'         => 'Tracking Transaksi',
+            'menu'          => 'Tracking Transaksi',
+            'submenu'       => 'Tracking Transaksi',
+            'titleMenus'    => 'Transaksi',
             'sectionMenu'   => 'main-menu',
         ];
         return view('admin.search-people', $data);
@@ -215,10 +216,11 @@ class PagesController extends Controller
     {
 
         $roles = Role::where('level', '!=', 0)
+            ->whereBetween('level', [1, 9]) // hanya 1 digit
             ->orderBy('name', 'asc')
             ->pluck('name', 'id')
             ->toArray();
-
+        // dd($roles);
         $peoples = People::select('id', 'fullName', 'identityNumber')->get()->map(function ($p) {
             return [
                 'id' => $p->id,
@@ -274,7 +276,7 @@ class PagesController extends Controller
             'title'         => 'User',
             'menu'          => 'user',
             'submenu'       => 'List User',
-            'titleMenus'    => 'User Management',
+            'titleMenus'    => 'Manajemen Pengguna',
             'sectionMenu'   => 'secondary-menu',
             'users'         => $users,
             'roles'         => $roles,
@@ -294,7 +296,7 @@ class PagesController extends Controller
             'title'         => 'Kategori',
             'menu'          => 'user',
             'submenu'       => 'List Kategori',
-            'titleMenus'    => 'Kategori Pelanggan',
+            'titleMenus'    => 'Manajemen Pengaturan',
             'sectionMenu'   => 'secondary-menu',
             'categories'         => $categories,
         ];
@@ -309,7 +311,7 @@ class PagesController extends Controller
             'title'         => 'Tambah Kategori',
             'menu'          => 'user',
             'submenu'       => 'Tambah Kategori',
-            'titleMenus'    => 'Tambah Kategori',
+            'titleMenus'    => 'Manajemen Pengaturan',
             'sectionMenu'   => 'secondary-menu',
 
         ];

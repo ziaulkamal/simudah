@@ -2,7 +2,7 @@
 
 @section('content')
 <main class="main-content w-full px-[var(--margin-x)] pb-8" x-data="activationPage()">
-    <x-breadcrumb-header title="{{ $title }}" submenu="Aktivasi" />
+    <x-breadcrumb-header title="{{ $title }}" submenu="{{ $submenu }}" />
 
     <div class="card mt-3">
         <!-- Desktop Table -->

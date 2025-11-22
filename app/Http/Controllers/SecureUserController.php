@@ -47,8 +47,10 @@ class SecureUserController extends GlobalController
             'username.regex' => 'Username tidak boleh mengandung spasi.',
             'password.required' => 'Password wajib diisi.',
             'password.min' => 'Password minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
             'people_id.unique' => 'Orang ini sudah memiliki akun pengguna.',
             'people_id.exists' => 'Data orang yang dipilih tidak valid.',
+            'role_id.required' => 'Wajib Pilih Level Akses.',
         ];
 
         $validated = $request->validate([
@@ -58,13 +60,13 @@ class SecureUserController extends GlobalController
                 'regex:/^[^\s]+$/',
                 'unique:secure_user,username',
             ],
-            'password' => 'required|string|min:6',
-            'role_id' => 'nullable|exists:roles,id',
+            'password' => 'required|string|min:6|confirmed',
+            'password_confirmation' => 'required', // opsional, tapi baik ditambah
+            'role_id' => 'required|exists:roles,id',
             'people_id' => 'nullable|exists:peoples,id|unique:secure_user,people_id',
             'status' => 'nullable|in:active,inactive',
         ], $messages);
 
-        // Hash password sebelum disimpan
         $validated['password'] = Hash::make($validated['password']);
 
         try {

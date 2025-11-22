@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\UsersActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -54,4 +55,6 @@ class SecureUser extends Authenticatable
     {
         return $this->belongsTo(People::class);
     }
+
+
 }

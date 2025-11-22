@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SystemLog;
 use App\Models\Transaction;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
@@ -29,6 +29,7 @@ class PaymentController extends Controller
                 'status' => 'paid',
                 'paid_at' => now(),
             ]);
+
 
             // Hitung tanggal jatuh tempo berikutnya (10 bulan depan)
             $nextDueDate = \Carbon\Carbon::create($transaction->year, $transaction->month, 10)

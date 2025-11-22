@@ -33,12 +33,12 @@ class ActivationController extends Controller
         });
 
         return view('admin.activation', [
-            'title' => 'Aktivasi User',
-            'menu' => 'dashboard',
-            'submenu' => '',
-            'titleMenus' => 'Aktivasi',
-            'sectionMenu' => 'main-menu',
-            'peoples' => $peoples,
+            'title'         => 'Aktivasi User',
+            'menu'          => 'Addons',
+            'submenu'       => 'Daftar Permohonan Aktivasi',
+            'titleMenus'    => 'Manajemen Pengguna',
+            'sectionMenu'   => 'secondary-menu',
+            'peoples'       => $peoples,
             'activatedHashes' => $activatedHashes,
         ]);
     }
