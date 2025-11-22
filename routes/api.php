@@ -37,11 +37,11 @@ Route::prefix('people')->group(function () {
 Route::get('/lsignature/{nik}', [PeopleController::class, 'localSignature']);
 
 Route::prefix('transactions')->group(function () {
-    Route::get('/all', [TransactionController::class, 'all']); // 🔹 semua transaksi (global list)
-    Route::get('/{id}/people', [TransactionController::class, 'index']); // semua transaksi by people
-    Route::get('/{id}', [TransactionController::class, 'show']); // detail transaksi by id
-    Route::get('/pelanggan/{hash}', [TransactionController::class, 'searchHashIdentity']); // detail transaksi by id
-    Route::post('/{id}/pay', [PaymentController::class, 'payTransaction']); // bayar transaksi
+    Route::get('/all', [TransactionController::class, 'all'])->middleware(['ajax.same.origin']); // 🔹 semua transaksi (global list)
+    Route::get('/{id}/people', [TransactionController::class, 'index'])->middleware(['ajax.same.origin']); // semua transaksi by people
+    Route::get('/{id}', [TransactionController::class, 'show'])->middleware(['ajax.same.origin']); // detail transaksi by id
+    Route::get('/pelanggan/{hash}', [TransactionController::class, 'searchHashIdentity'])->middleware(['ajax.same.origin']); // detail transaksi by id
+    Route::post('/{id}/pay', [PaymentController::class, 'payTransaction'])->middleware(['ajax.same.origin']); // bayar transaksi
 });
 
 Route::prefix('accounts')->controller(SecureUserController::class)->group(function () {

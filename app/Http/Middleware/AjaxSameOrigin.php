@@ -13,7 +13,7 @@ class AjaxSameOrigin
         if (!$request->ajax() && !$request->wantsJson()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Only AJAX requests allowed.'
+                'message' => 'Unauthorized.'
             ], 403);
         }
 
@@ -27,7 +27,7 @@ class AjaxSameOrigin
         if (!$origin && !$referer) {
             return response()->json([
                 'success' => false,
-                'message' => 'Origin or referer missing. Browser only.'
+                'message' => 'Origin or referer missing.'
             ], 403);
         }
 

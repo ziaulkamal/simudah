@@ -120,7 +120,11 @@ document.addEventListener('alpine:init', () => {
         async loadTransactions() {
             this.loading = true;
             try {
-                const res = await fetch(`/api/transactions/${peopleId}/people`);
+                const res = await fetch(`/api/transactions/${peopleId}/people`, {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
                 const data = await res.json();
 
                 if (data.success) {

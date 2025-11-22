@@ -83,6 +83,7 @@
         };
     </script>
     @stack('styles')
+    <script src="{{ asset('build/assets/globalsign.js') }}"></script>
 </head>
 
   <body x-data class="is-header-blur" x-bind="$store.global.documentBody">
@@ -115,5 +116,7 @@
             }
         });
     </script>
+
+
   </body>
 </html>

@@ -283,7 +283,11 @@ function wilayahDropdown(initial) {
         streetAddress: initial.line || '',
 
         async initWilayah() {
-            const resProv = await fetch('/api/provinces');
+            const resProv = await fetch('/api/provinces', {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
             this.provinces = await resProv.json();
 
             this.selectedProvince = initial.province || '';
@@ -325,19 +329,31 @@ function wilayahDropdown(initial) {
 
         async loadRegencies(isInit = false) {
             if (!this.selectedProvince) return;
-            const res = await fetch(`/api/regencies/${this.selectedProvince}`);
+            const res = await fetch(`/api/regencies/${this.selectedProvince}`, {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
             this.regencies = await res.json();
             if (!isInit) this.selectedRegency = '';
         },
         async loadDistricts(isInit = false) {
             if (!this.selectedRegency) return;
-            const res = await fetch(`/api/districts/${this.selectedRegency}`);
+            const res = await fetch(`/api/districts/${this.selectedRegency}`, {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
             this.districts = await res.json();
             if (!isInit) this.selectedDistrict = '';
         },
         async loadVillages(isInit = false) {
             if (!this.selectedDistrict) return;
-            const res = await fetch(`/api/villages/${this.selectedDistrict}`);
+            const res = await fetch(`/api/villages/${this.selectedDistrict}`, {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
             this.villages = await res.json();
             if (!isInit) this.selectedVillage = '';
         },
