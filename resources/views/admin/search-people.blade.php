@@ -140,7 +140,10 @@ function transactionsTable() {
             nikInput.classList.add('opacity-50', 'cursor-wait');
 
             try {
-                const hashRes = await fetch(`/api/lsignature/${encodeURIComponent(this.nik)}`);
+                const hashRes = await fetch(`/api/lsignature/${encodeURIComponent(this.nik)}`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                });
                 const hashData = await hashRes.json();
                 if (!hashData.success) {
                     alert(hashData.message || 'Data tidak ditemukan');
@@ -150,7 +153,10 @@ function transactionsTable() {
                 }
 
                 const hash = hashData.data.hash;
-                const res = await fetch(`/api/transactions/pelanggan/${hash}`);
+                const res = await fetch(`/api/transactions/pelanggan/${hash}`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                });
                 const data = await res.json();
 
                 if (data.success) {
@@ -232,7 +238,10 @@ function transactionsTable() {
 
         reactivateAccount() {
             if (!this.people) return;
-            fetch(`/api/people/${this.people.id}/reactivate`, { method: 'POST' })
+            fetch(`/api/people/${this.people.id}/reactivate`, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' },
+                })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {

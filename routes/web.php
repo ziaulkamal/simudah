@@ -10,6 +10,7 @@ use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\SelfRegistrationController;
 use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\SystemLogController;
+use App\Http\Controllers\TransactionController;
 use App\Models\TemporaryPeopleDocument;
 use App\Services\SecureFileService;
 use Illuminate\Support\Facades\Response;
@@ -17,7 +18,8 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 
 
-Route::get('/admin/activation/data', [ActivationController::class, 'data'])->name('activation.data');
+
+Route::get('/admin/activation/data', [ActivationController::class, 'data'])->middleware(['auth.check', 'role.level:99,1'])->name('activation.data');
 
 Route::get('/storage/file/{id}', function ($id) {
     $doc = TemporaryPeopleDocument::findOrFail($id);
@@ -40,10 +42,10 @@ Route::get('/storage/file/{id}', function ($id) {
 Route::get('/', [PagesController::class, 'dashboard'])->middleware(['auth.check'])->name('dashboard');
 Route::get('addons', [PagesController::class, 'addons'])->middleware(['auth.check', 'role.level:99,1'])->name('addons');
 
-Route::get('add-pelanggan/{id?}', [PagesController::class, 'insertPeoples'])->name('customer.create');
-Route::get('pelanggan', [PagesController::class, 'peoples'])->name('customer.index');
+Route::get('add-pelanggan/{id?}', [PagesController::class, 'insertPeoples'])->middleware(['auth.check', 'role.level:99,1'])->name('customer.create');
+Route::get('pelanggan', [PagesController::class, 'peoples'])->middleware(['auth.check', 'role.level:99,1'])->name('customer.index');
 Route::get('pelanggan/detail/{hash}', [PagesController::class, 'viewsPeople'])->name('customer.view');
-Route::get('pelanggan/trx', [PagesController::class, 'viewTransactions'])->name('pelanggan.trx');
+Route::get('pelanggan/trx', [PagesController::class, 'viewTransactions'])->middleware(['auth.check', 'role.level:99,1'])->name('pelanggan.trx');
 
 
 
@@ -56,6 +58,8 @@ Route::prefix('profile')->name('profile.')->group(function () {
 });
 
 Route::get('transaksi', [PagesController::class, 'transaction'])->name('transaction.index');
+Route::get('/transactions/{transaction_code}/invoice/pdf', [TransactionController::class, 'downloadPdf']);
+
 
 Route::get('auth-login', function () {
     return view('auth.login');

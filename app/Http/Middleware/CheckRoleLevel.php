@@ -10,7 +10,7 @@ class CheckRoleLevel
 {
     public function handle(Request $request, Closure $next, ...$allowedLevels)
     {
-        $roleLevel = Session::get('role_level');
+        $roleLevel = session()->get('role_level');
 
         $allowedLevels = array_map('intval', $allowedLevels);
 

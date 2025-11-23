@@ -22,6 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role.level' => \App\Http\Middleware\CheckRoleLevel::class,
             'auth.check' => \App\Http\Middleware\CheckLogin::class,
             'auth.accept' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+            'api.session' => \Illuminate\Session\Middleware\StartSession::class,
+
         ]);
     })
 

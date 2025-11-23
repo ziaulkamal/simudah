@@ -148,22 +148,43 @@ class LoginController extends Controller
     /**
      * Dapatkan data user yang sedang login
      */
-    public function me()
+    public function me(Request $request)
     {
-        if (!Session::has('login_id')) {
-            return response()->json(session()->all(), 401);
-        }
+        $roleLevel = session()->all();
+        dd($roleLevel);
+        $allowedLevels = func_get_args()[99] ?? [];
 
-        if (Session::get('login_type') === 'secure') {
-            $user = SecureUser::with(['role', 'people.district', 'people.village'])
-                ->find(Session::get('login_id'));
-        } else {
-            $user = People::with(['role', 'district', 'village'])
-                ->find(Session::get('login_id'));
-        }
+        $allowedLevels = array_map('intval', $allowedLevels);
 
-        return response()->json(['status' => 'success', 'user' => $user]);
+        if (!in_array((int)$roleLevel, $allowedLevels)) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Anda tidak dibenarkan mengakses resource ini.'
+                ], 403);
+            }
+
+            session()->flash('role_modal', [
+                'title' => 'Akses Ditolak',
+                'message' => 'Level Anda tidak diperbolehkan mengakses halaman ini.'
+            ]);
+
+            return redirect()->back(); // fallback web
+        }
     }
+    //     if (!Session::has('login_id')) {
+    //         return response()->json(session()->all(), 401);
+    //     }
+
+    //     if (Session::get('login_type') === 'secure') {
+    //         $user = SecureUser::with(['role', 'people.district', 'people.village'])
+    //             ->find(Session::get('login_id'));
+    //     } else {
+    //         $user = People::with(['role', 'district', 'village'])
+    //             ->find(Session::get('login_id'));
+    //     }
+
+    //     return response()->json(['status' => 'success', 'user' => $user]);
+    // }
 
     /**
      * Logout

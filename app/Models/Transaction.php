@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Category;
 use App\Models\People;
 use App\Models\Role;
-use App\Models\SystemLog;
 
 class Transaction extends Model
 {
@@ -28,6 +27,8 @@ class Transaction extends Model
         'due_date' => 'datetime',
     ];
 
+    protected $appends = ['address', 'fullName', 'phoneNumber'];
+
     public function people()
     {
         return $this->belongsTo(People::class);
@@ -45,13 +46,47 @@ class Transaction extends Model
 
     protected static function booted()
     {
-        // generate kode transaksi unik
         static::creating(function ($trx) {
             if (empty($trx->transaction_code)) {
                 $trx->transaction_code = 'TRX-' . strtoupper(uniqid());
             }
         });
+    }
 
+    public static function getFullTransactionByCode(string $code)
+    {
+        return self::with([
+            'people.role',
+            'people.category',
+            'people.documents',
+            'people.location',
+            'people.province',
+            'people.regencie',
+            'people.district',
+            'people.village',
+            'category',
+            'role'
+        ])->where('transaction_code', $code)->first();
+    }
 
+    public function getAddressAttribute()
+    {
+        return [
+            'street'   => $this->people->location->street ?? '-',
+            'province' => $this->people->province->name ?? '-',
+            'regencie' => $this->people->regencie->name ?? '-',
+            'district' => $this->people->district->name ?? '-',
+            'village'  => $this->people->village->name ?? '-',
+        ];
+    }
+
+    public function getFullNameAttribute()
+    {
+        return $this->people->fullName ?? '-';
+    }
+
+    public function getPhoneNumberAttribute()
+    {
+        return $this->people->phoneNumber ?? '-';
     }
 }

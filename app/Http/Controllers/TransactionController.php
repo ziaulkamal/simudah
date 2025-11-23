@@ -6,6 +6,7 @@ use App\Models\People;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 class TransactionController extends Controller
@@ -65,6 +66,56 @@ class TransactionController extends Controller
             ]
         ]);
     }
+
+    public function showByCode($transaction_code)
+    {
+        $transaction = Transaction::with([
+            'people.role',
+            'people.category',
+            'people.province',
+            'people.regencie',
+            'people.district',
+            'people.village',
+            'category'
+        ])->where('transaction_code', $transaction_code)->first();
+
+        if (!$transaction) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Transaksi tidak ditemukan'
+            ], 404);
+        }
+
+        $people = $transaction->people;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'transaction' => [
+                    'id' => $transaction->id,
+                    'transaction_code' => $transaction->transaction_code,
+                    'amount' => $transaction->amount,
+                    'month' => $transaction->month,
+                    'year' => $transaction->year,
+                    'status' => $transaction->status,
+                    'paid_at' => $transaction->paid_at ? date_time_id($transaction->paid_at, false) : '-',
+                    'due_date' => $transaction->due_date ? date_time_id($transaction->due_date, false) : '-',
+                    'fullName' => $people->fullName,
+                    'phoneNumber' => $people->phoneNumber,
+                    'address' => [
+                        'street' => $people->streetAddress,
+                        'province' => $people->province?->name,
+                        'regencie' => $people->regencie?->name,
+                        'district' => $people->district?->name,
+                        'village' => $people->village?->name,
+                    ],
+                    'role' => $people->role?->name,
+                    'category' => $people->category?->name,
+                ]
+            ]
+        ]);
+    }
+
 
 
     /**
@@ -263,5 +314,23 @@ class TransactionController extends Controller
             ],
             'transactions' => $transactions,
         ]);
+    }
+
+    public function downloadPdf($transaction_code)
+    {
+        // Ambil transaksi by code
+        $transaction = Transaction::where('transaction_code', $transaction_code)->first();
+
+        if (!$transaction) {
+            return abort(404, "Transaksi tidak ditemukan");
+        }
+
+        // Kirim ke template PDF
+        $pdf = Pdf::loadView('pdf.invoice', [
+            'transaction' => $transaction
+        ])->setPaper('A4', 'portrait');
+
+        // Download otomatis
+        return $pdf->download("Invoice-{$transaction->transaction_code}.pdf");
     }
 }
