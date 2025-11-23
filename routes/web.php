@@ -35,20 +35,10 @@ Route::get('/storage/file/{id}', function ($id) {
 })->name('storage.file');
 
 
-// ✅ Rute wilayah dinamis
 
-// Route::get('/api/provinces', [MendagriController::class, 'getProvinces']);
-// Route::get('/api/regencies/{provinceId}', [MendagriController::class, 'getRegencies']);
-// Route::get('/api/districts/{regencyId}', [MendagriController::class, 'getDistricts']);
-// Route::get('/api/villages/{districtId}', [MendagriController::class, 'getVillages']);
-
-
-// ->middleware('check.session:1,2,3')
-Route::get('/', [PagesController::class, 'dashboard'])->name('dashboard');
-// Route::get('/', function () {
-//     dd(Session::all());
-// })->name('dashboard');
-Route::get('addons', [PagesController::class, 'addons'])->name('addons');
+// ->middleware(['auth.check', 'role.level:99'])
+Route::get('/', [PagesController::class, 'dashboard'])->middleware(['auth.check'])->name('dashboard');
+Route::get('addons', [PagesController::class, 'addons'])->middleware(['auth.check', 'role.level:99,1'])->name('addons');
 
 Route::get('add-pelanggan/{id?}', [PagesController::class, 'insertPeoples'])->name('customer.create');
 Route::get('pelanggan', [PagesController::class, 'peoples'])->name('customer.index');
@@ -66,36 +56,37 @@ Route::prefix('profile')->name('profile.')->group(function () {
 });
 
 Route::get('transaksi', [PagesController::class, 'transaction'])->name('transaction.index');
-Route::get('kategori', [PagesController::class, 'categoryList'])->name('category.index');
 
-Route::get('auth-login', function () { return view('auth.login'); })->name('auth.login');
+Route::get('auth-login', function () {
+    return view('auth.login');
+})->middleware('auth.accept')->name('auth.login');
 
-Route::prefix('user')->group(function () {
+Route::prefix('user')->middleware(['auth.check', 'role.level:99,1'])->group(function () {
     Route::get('/add-user', [PagesController::class, 'userForm'])->name('user.create');
     Route::get('/list', [PagesController::class, 'userList'])->name('user.list');
 });
 
-Route::prefix('category')->group(function () {
+Route::prefix('category')->middleware(['auth.check', 'role.level:99'])->group(function () {
     Route::get('/category-add', [PagesController::class, 'insertCategory'])->name('category.create');
-    Route::get('/', [PagesController::class, 'categoryList'])->name('category.list');
+    Route::get('/', [PagesController::class, 'categoryList'])->name('category.index');
 });
 
-Route::post('/send-otp', [OtpController::class, 'sendOtp'])->name('send.otp');
-Route::post('/verify-otp', [OtpController::class, 'verifyOtp'])->name('verify.otp');
-Route::post('/login', [LoginController::class, 'login'])->name('login');
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-Route::get('/me', [LoginController::class, 'me'])->name('me');
+Route::post('/send-otp', [OtpController::class, 'sendOtp'])->middleware('auth.accept')->name('send.otp');
+Route::post('/verify-otp', [OtpController::class, 'verifyOtp'])->middleware('auth.accept')->name('verify.otp');
+Route::post('/login', [LoginController::class, 'login'])->middleware('auth.accept')->name('login');
+Route::post('/logout', [LoginController::class, 'logout'])->middleware(['auth.check', 'role.level:99,1,2,3,4'])->name('logout');
+Route::get('/me', [LoginController::class, 'me'])->middleware(['auth.check', 'role.level:99'])->name('me');
 Route::get('/system-logs', [SystemLogController::class, 'index'])->name('system-logs.index');
 
-Route::get('/register', [SelfRegistrationController::class, 'showForm'])->name('register.form');
-Route::post('/register', [SelfRegistrationController::class, 'submitForm'])->name('register.submit');
+Route::get('/register', [SelfRegistrationController::class, 'showForm'])->middleware('auth.accept')->name('register.form');
+Route::post('/register', [SelfRegistrationController::class, 'submitForm'])->middleware('auth.accept')->name('register.submit');
 
-Route::get('/verify-otp/{id}', [SelfRegistrationController::class, 'showVerify'])->name('register.verify');
-Route::post('/verify-otp/{id}', [SelfRegistrationController::class, 'verifyOtp'])->name('register.verify.submit');
-Route::get('/register/resend-otp/{id}', [SelfRegistrationController::class, 'resendOtp'])
+Route::get('/verify-otp/{id}', [SelfRegistrationController::class, 'showVerify'])->middleware('auth.accept')->name('register.verify');
+Route::post('/verify-otp/{id}', [SelfRegistrationController::class, 'verifyOtp'])->middleware('auth.accept')->name('register.verify.submit');
+Route::get('/register/resend-otp/{id}', [SelfRegistrationController::class, 'resendOtp'])->middleware('auth.accept')
     ->name('register.resendOtp');
 
-Route::prefix('activation')->name('activation.')->group(function () {
+Route::prefix('activation')->middleware(['auth.check', 'role.level:99,1'])->name('activation.')->group(function () {
     Route::get('/', [ActivationController::class, 'index'])->name('index');
     Route::get('/{id}', [ActivationController::class, 'show'])->name('show');
     Route::post('/{id}/activate', [ActivationController::class, 'activate'])->name('activate');

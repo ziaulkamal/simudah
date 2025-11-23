@@ -3,7 +3,7 @@
 
 @section('content')
 {{-- @php
-    dd(session()->all());
+    dd(auth()->user());
 @endphp --}}
 
 <main class="main-content w-full place-items-center px-[var(--margin-x)] pb-6">

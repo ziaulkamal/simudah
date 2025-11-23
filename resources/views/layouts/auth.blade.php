@@ -126,8 +126,17 @@
         @yield('pages')
         @stack('scripts')
         <div id="x-teleport-target"></div>
+        <x-login-modal />
         <script>
-        window.addEventListener("DOMContentLoaded", () => Alpine.start());
+        document.addEventListener("DOMContentLoaded", function () {
+            Alpine.start();
+
+            @if(session('login_modal'))
+                window.dispatchEvent(new CustomEvent('show-login-modal', {
+                    detail: @json(session('login_modal'))
+                }));
+            @endif
+        });
         </script>
     </body>
     </html>

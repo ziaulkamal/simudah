@@ -101,21 +101,30 @@
     </div>
 
     <div id="x-teleport-target"></div>
+    <x-role-modal />
     @stack('scripts')
-    <script>
-      window.addEventListener("DOMContentLoaded", () => Alpine.start());
-    </script>
-        <!-- Komponen modal alert -->
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            if (window.APP_SESSION?.signature) {
-                localStorage.setItem(
-                    "signature_session",
-                    JSON.stringify(window.APP_SESSION.signature)
-                );
-            }
-        });
-    </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Start AlpineJS
+    Alpine.start();
+
+    // Simpan signature_session ke localStorage jika ada
+    if (window.APP_SESSION?.signature) {
+        localStorage.setItem(
+            "signature_session",
+            JSON.stringify(window.APP_SESSION.signature)
+        );
+    }
+
+    // Trigger role modal jika ada session flash
+    @if(session('role_modal'))
+        window.dispatchEvent(new CustomEvent('show-role-modal', {
+            detail: @json(session('role_modal'))
+        }));
+    @endif
+});
+</script>
 
 
   </body>

@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.session' => \App\Http\Middleware\CheckLoginSession::class,
             'ajax.same.origin' => \App\Http\Middleware\AjaxSameOrigin::class,
             'verify.api.signature' => \App\Http\Middleware\VerifyApiSignature::class,
+            'role.level' => \App\Http\Middleware\CheckRoleLevel::class,
+            'auth.check' => \App\Http\Middleware\CheckLogin::class,
+            'auth.accept' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         ]);
     })
 
