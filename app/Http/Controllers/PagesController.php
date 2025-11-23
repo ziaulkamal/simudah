@@ -183,7 +183,7 @@ class PagesController extends Controller
             'titleMenus'    => 'Addons',
             'sectionMenu'   => 'secondary-menu',
         ];
-        return view('admin.dashboard', $data);
+        return view('admin.onboarding-addons', $data);
     }
 
     function transaction()  {

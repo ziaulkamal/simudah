@@ -257,7 +257,10 @@ function transactionsTable() {
                     villageId: this.filter.villageId,
                     search: this.search
                 });
-                const res = await fetch(`/api/transactions/all?${params.toString()}`);
+                const res = await fetch(`/api/transactions/all?${params.toString()}`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                });
                 const data = await res.json();
                 if (data.success) {
                     this.transactions = data.data;
@@ -307,12 +310,18 @@ function wilayahDropdown() {
             await this.loadDistricts();
         },
         async loadDistricts() {
-            const res = await fetch(`/api/districts/${this.selectedRegency}`);
+            const res = await fetch(`/api/districts/${this.selectedRegency}`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                });
             this.districts = await res.json();
         },
         async loadVillages() {
             if (!this.selectedDistrict) return this.villages = {};
-            const res = await fetch(`/api/villages/${this.selectedDistrict}`);
+            const res = await fetch(`/api/villages/${this.selectedDistrict}`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                });
             this.villages = await res.json();
         }
     };
