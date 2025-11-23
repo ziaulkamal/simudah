@@ -40,12 +40,16 @@ Route::get('/storage/file/{id}', function ($id) {
 
 // ->middleware(['auth.check', 'role.level:99'])
 Route::get('/', [PagesController::class, 'dashboard'])->middleware(['auth.check'])->name('dashboard');
+
+// Route::get('/', function () {
+//     dd(session()->all());
+// });
 Route::get('addons', [PagesController::class, 'addons'])->middleware(['auth.check', 'role.level:99,1'])->name('addons');
 
 Route::get('add-pelanggan/{id?}', [PagesController::class, 'insertPeoples'])->middleware(['auth.check', 'role.level:99,1'])->name('customer.create');
 Route::get('pelanggan', [PagesController::class, 'peoples'])->middleware(['auth.check', 'role.level:99,1'])->name('customer.index');
 Route::get('pelanggan/detail/{hash}', [PagesController::class, 'viewsPeople'])->name('customer.view');
-Route::get('pelanggan/trx', [PagesController::class, 'viewTransactions'])->middleware(['auth.check', 'role.level:99,1'])->name('pelanggan.trx');
+Route::get('pelanggan/trx', [PagesController::class, 'viewTransactions'])->middleware(['auth.check', 'role.level:99,1,2'])->name('pelanggan.trx');
 
 
 
@@ -57,7 +61,7 @@ Route::prefix('profile')->name('profile.')->group(function () {
     Route::get('/privacy', fn() => view('profile.privacy'))->name('privacy');
 });
 
-Route::get('transaksi', [PagesController::class, 'transaction'])->name('transaction.index');
+Route::get('transaksi', [PagesController::class, 'transaction'])->middleware(['auth.check', 'role.level:99,1'])->name('transaction.index');
 Route::get('/transactions/{transaction_code}/invoice/pdf', [TransactionController::class, 'downloadPdf']);
 
 
@@ -78,8 +82,8 @@ Route::prefix('category')->middleware(['auth.check', 'role.level:99'])->group(fu
 Route::post('/send-otp', [OtpController::class, 'sendOtp'])->middleware('auth.accept')->name('send.otp');
 Route::post('/verify-otp', [OtpController::class, 'verifyOtp'])->middleware('auth.accept')->name('verify.otp');
 Route::post('/login', [LoginController::class, 'login'])->middleware('auth.accept')->name('login');
-Route::post('/logout', [LoginController::class, 'logout'])->middleware(['auth.check', 'role.level:99,1,2,3,4'])->name('logout');
-Route::get('/me', [LoginController::class, 'me'])->middleware(['auth.check', 'role.level:99'])->name('me');
+Route::post('/logout', [LoginController::class, 'logout'])->middleware(['auth.check'])->name('logout');
+Route::get('/me', [LoginController::class, 'me'])->name('me');
 Route::get('/system-logs', [SystemLogController::class, 'index'])->name('system-logs.index');
 
 Route::get('/register', [SelfRegistrationController::class, 'showForm'])->middleware('auth.accept')->name('register.form');

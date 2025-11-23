@@ -15,18 +15,17 @@ class CheckRoleLevel
         $allowedLevels = array_map('intval', $allowedLevels);
 
         if (!in_array((int)$roleLevel, $allowedLevels)) {
-            if ($request->expectsJson() || $request->is('api/*')) {
-                return response()->json([
-                    'message' => 'Anda tidak dibenarkan mengakses resource ini.'
-                ], 403);
-            }
 
             session()->flash('role_modal', [
                 'title' => 'Akses Ditolak',
                 'message' => 'Level Anda tidak diperbolehkan mengakses halaman ini.'
             ]);
 
-            return redirect()->back(); // fallback web
+            if (url()->previous() !== url()->current()) {
+                return redirect()->back()->withInput();
+            }
+
+            return redirect()->route('dashboard');
         }
 
         return $next($request);

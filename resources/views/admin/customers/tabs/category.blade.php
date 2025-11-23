@@ -28,6 +28,7 @@
         </div>
 
         <!-- Bagian kanan header -->
+        @if (session()->get('role_level') === 99 || session()->get('role_level') === 1)
         <div class="flex flex-wrap items-center gap-3">
             <!-- Mode Edit -->
             <template x-if="editMode">
@@ -80,7 +81,7 @@
                 </template>
             </button>
         </div>
-
+        @endif
     </div>
 
     <!-- Daftar Riwayat -->
@@ -150,7 +151,10 @@ document.addEventListener('alpine:init', () => {
 
         async loadHistory() {
             try {
-                const res = await fetch(`/api/people/${peopleId}/category-change-count`);
+                const res = await fetch(`/api/people/${peopleId}/category-change-count`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                });
                 if (!res.ok) throw new Error('Gagal memuat riwayat');
                 const data = await res.json();
 

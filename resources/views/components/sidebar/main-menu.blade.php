@@ -7,6 +7,8 @@
                     class="flex py-2 text-xs-plus tracking-wide outline-hidden transition-colors duration-300 ease-in-out">
                     Dashboard </a>
             </li>
+            @if (session()->get('role_level') == 99 || session()->get('role_level') == 1 || session()->get('role_level') == 2)
+
             <li x-data="accordionItem('menu-item-customer')">
                 <a :class="expanded ? 'text-slate-800 font-semibold dark:text-navy-50' : 'text-slate-600 dark:text-navy-200 hover:text-slate-800 dark:hover:text-navy-50'"
                     @click="expanded = !expanded"
@@ -95,6 +97,7 @@
                     </li> --}}
                 </ul>
             </li>
+            @endif
         </ul>
 
 

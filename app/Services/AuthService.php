@@ -40,6 +40,9 @@ class AuthService
                 'role'      => $people->role?->name,
                 'level'     => $people->role?->level,
             ];
+
+            // ✅ TAMBAHKAN INI!
+            Session::put('people.id', $people->id);
         }
 
         // PRIORITAS LABEL PROFILE

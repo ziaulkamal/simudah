@@ -3,6 +3,8 @@
     <!-- Header -->
     <div class="flex items-center justify-between border-b border-slate-200 pb-4 dark:border-navy-500">
         <h2 class="text-lg font-semibold text-slate-700 dark:text-navy-100">{{ $title }}</h2>
+        @if (session()->get('role_level') === 99 || session()->get('role_level') === 1)
+
         <button
             @click="editMode = !editMode"
             class="btn rounded-full border border-slate-300 text-slate-600 hover:bg-slate-100
@@ -20,6 +22,7 @@
                 </span>
             </template>
         </button>
+        @endif
     </div>
 
     <!-- Form Edit -->

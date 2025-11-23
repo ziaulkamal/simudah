@@ -82,12 +82,16 @@
                                 </template>
 
                                 <template x-if="trx.status === 'pending'">
+                                    @if (session()->get('role_level') === 99 || session()->get('role_level') === 1)
                                     <button
                                         @click="payNow(trx.id)"
                                         class="btn bg-warning/10 text-warning hover:bg-warning/20 text-xs px-2 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         Bayar Sekarang
                                     </button>
+                                    @else
+                                    <span class="btn bg-warning/10 text-warning hover:bg-warning/20 text-xs px-2 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">Menunggu Pembayaran</span>
+                                    @endif
                                 </template>
 
                                 <template x-if="trx.status === 'cancelled'">
@@ -141,8 +145,8 @@ document.addEventListener('alpine:init', () => {
                 this.loading = false;
             }
         },
-
-        async payNow(id) {
+        if (@json(session()->get('role_level')) === 99 || @json(session()->get('role_level')) === 1) {
+            async payNow(id) {
             if (!confirm('Yakin ingin menandai transaksi ini sebagai LUNAS?')) return;
             try {
                 const res = await fetch(`/api/transactions/${id}/pay`, {
@@ -162,6 +166,8 @@ document.addEventListener('alpine:init', () => {
                 alert('Terjadi kesalahan saat memproses pembayaran');
             }
         },
+        }
+
     }));
 });
 </script>

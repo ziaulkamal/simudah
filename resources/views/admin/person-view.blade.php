@@ -67,9 +67,12 @@
                     </div>
 
                     <!-- TUTUP AKUN -->
+                    @if (session()->get('role_level') == 99)
                     <div x-show="activeTab === 'tutup'" class="p-4 sm:p-5">
                         @include('admin.customers.tabs.tutup')
                     </div>
+
+                    @endif
                 </div>
             </div>
         </div>

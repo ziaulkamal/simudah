@@ -34,7 +34,7 @@
                     <div>
                         <h2 class="text-xl font-semibold text-slate-700 dark:text-navy-100" x-text="people.name"></h2>
                         <p class="text-sm text-slate-500 dark:text-navy-300" x-text="people.category.name || '-'"></p>
-                        <p class="mt-1 text-sm font-medium">Tagihan Bulan Ini: <span x-text="formatRupiah(currentMonthTotal())"></span></p>
+                        <p class="mt-1 text-sm font-medium">Tagihan tertunda: <span x-text="formatRupiah(currentMonthTotal())"></span></p>
                         <p class="text-sm font-medium">Jumlah Transaksi: <span x-text="transactions.length"></span></p>
                         <!-- 🔹 Status Akun -->
                         <div class="flex items-center gap-2 mt-1">
