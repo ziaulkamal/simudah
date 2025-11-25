@@ -152,7 +152,11 @@ function activationPage() {
     },
 
     loadData(url) {
-      fetch(url)
+      fetch(url, {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            })
         .then(res => res.json())
         .then(data => {
           this.peoples = data.data;
