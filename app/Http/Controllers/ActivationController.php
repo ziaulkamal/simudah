@@ -79,16 +79,14 @@ class ActivationController extends Controller
             ];
         });
 
-        // return response()->json([
-        //     'data' => $mappedData,
-        //     'from' => $peoples->firstItem(),
-        //     'pagination' => (string) $peoples->links('components.pagination-simple'),
-        // ]);
+        // FIX PAGINATION → ubah URL absolut menjadi URL relatif
+        $pagination = $peoples->links('components.pagination-simple')->toHtml();
+        $pagination = preg_replace('#https?://[^/]+#', '', $pagination);
 
         return response()->json([
-            'data' => $peoples->items(),
-            'pagination' => $peoples->links('components.pagination-simple')->toHtml(),
+            'data' => $mappedData,
             'from' => $peoples->firstItem(),
+            'pagination' => $pagination,
         ]);
     }
 }
