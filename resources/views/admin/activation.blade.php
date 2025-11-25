@@ -148,15 +148,11 @@ function activationPage() {
     from: 1,
 
     init() {
-      this.loadData('{{ route('activation.data') }}');
+      this.loadData('/api/admin/activation/data');
     },
 
     loadData(url) {
-      fetch(url, {
-                headers: {
-                    'Accept': 'application/json',
-                },
-            })
+      fetch(url)
         .then(res => res.json())
         .then(data => {
           this.peoples = data.data;
