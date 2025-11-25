@@ -19,7 +19,6 @@ use Illuminate\Support\Facades\Session;
 
 
 
-Route::get('/admin/activation/data', [ActivationController::class, 'data'])->middleware(['auth.check', 'role.level:99,1'])->name('activation.data');
 
 Route::get('/storage/file/{id}', function ($id) {
     $doc = TemporaryPeopleDocument::findOrFail($id);
