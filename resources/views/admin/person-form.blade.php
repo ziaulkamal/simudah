@@ -320,35 +320,28 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // --- Perbaikan fetch NIK ---
-    const fetchNIKData = async (nik) => {
+    async function fetchNIKData(nik) {
         try {
-            // Kirim GET tanpa body
-            const sigRes = await fetch(`/api/signature?nik=${encodeURIComponent(nik)}`);
-            const { signature, timestamp } = await sigRes.json();
-
-            nikInput.classList.add('opacity-50', 'cursor-wait');
-
             const response = await fetch('/api/mendagri/identity/nik', {
                 method: 'POST',
-                headers: {
+                   headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'X-App-Signature': signature,
-                    'X-App-Timestamp': timestamp
+                    'X-Requested-With': 'XMLHttpRequest', // 🔥 ini penting
+                    'Accept': 'application/json'         // 🔥 ini juga penting
                 },
-                body: JSON.stringify({ nik }) // POST → aman
+                body: JSON.stringify({ nik })
             });
 
-            if (!response.ok) throw new Error('Network response was not ok');
+            if (!response.ok) throw new Error('Request failed');
+
             const data = await response.json();
-            setFormValues(data);
+            console.log(data);
+
         } catch (err) {
             console.error(err);
-            resetFormOnInvalidNik();
-        } finally {
-            nikInput.classList.remove('opacity-50', 'cursor-wait');
         }
-    };
+    }
 
     // --- Perbaikan search ---
     const triggerIdentitySearch = async () => {

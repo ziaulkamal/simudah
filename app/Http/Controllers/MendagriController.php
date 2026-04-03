@@ -20,7 +20,7 @@ class MendagriController extends Controller
 
     public function __construct()
     {
-        $this->baseUrl = env('PYTHON_GATEWAY_BASE_URL', 'http://localhost:8000');
+        $this->baseUrl = env('PYTHON_GATEWAY_BASE_URL', 'http://secret_service_apis:8000');
         $this->clientId = env('PYTHON_GATEWAY_CLIENT_ID');
         $this->clientSecret = env('PYTHON_GATEWAY_CLIENT_SECRET');
     }
@@ -44,9 +44,8 @@ class MendagriController extends Controller
     {
         return Villages::where('district_id', $districtId)->pluck('name', 'id');
     }
-
     /**
-     * Ambil identitas penduduk berdasarkan NIK
+     * Ambil identitas berdasarkan NIK
      */
     public function fetchIdentityByNik(Request $request)
     {
@@ -56,47 +55,45 @@ class MendagriController extends Controller
             return response()->json(['error' => 'Invalid NIK'], 400);
         }
 
+        // 🔥 body canonical
         $body = ['nik' => $nik];
-        $signature = HmacService::generateSignature($body, $this->clientSecret);
 
+        // Generate signature clean
+        $hmac = HmacService::generateSignature($body, $this->clientSecret);
 
         try {
             $response = Http::withHeaders([
-                    'x-client-id' => $this->clientId,
-                    'x-signature' => $signature,
-                    'Content-Type' => 'application/json',
-                ])
-                ->post("{$this->baseUrl}/identity/nik", $body);
+                'x-client-id' => $this->clientId,
+                'x-signature' => $hmac['signature'],
+                'x-timestamp' => $hmac['timestamp'],
+                'Content-Type' => 'application/json',
+            ])->post("{$this->baseUrl}/identity/nik", $body);
 
             $gatewayData = $response->json();
 
-            // Hitung gender, birthdate, age dari NIK
+            // tambahan lokal
             $gender = $this->extractGenderFromNik($nik);
             $birthdate = $this->extractBirthdateFromNik($nik);
             $age = $birthdate ? $this->calculateAge($birthdate) : null;
 
-            $finalData = array_merge($gatewayData, [
+            $finalData = array_merge($gatewayData ?? [], [
                 'gender' => $gender,
                 'birthdate' => $birthdate,
                 'age' => $age,
             ]);
 
-            if ($response->status() === 403) {
-                return response()->json(['error' => 'Forbidden: Invalid client credentials'], 403);
-            }
-
             return response()->json($finalData, $response->status());
+
         } catch (\Throwable $e) {
-            // ❌ Error umum lain
             return response()->json([
-                'error' => 'Failed to connect to Python Gateway API',
+                'error' => 'Gateway error',
                 'message' => $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * Ambil identitas penduduk berdasarkan nama + NIK
+     * Search berdasarkan nama + NIK
      */
     public function fetchIdentityBySearch(Request $request)
     {
@@ -107,7 +104,12 @@ class MendagriController extends Controller
             return response()->json(['error' => 'Missing name or NIK'], 400);
         }
 
-        $body = ['nik' => $nik, 'name' => $name];
+        $body = [
+            'nik' => $nik,
+            'name' => $name,
+            'timestamp' => time()
+        ];
+
         $signature = HmacService::generateSignature($body, $this->clientSecret);
 
         try {
@@ -117,29 +119,25 @@ class MendagriController extends Controller
                 'Content-Type' => 'application/json',
             ])->post("{$this->baseUrl}/identity/search", $body);
 
-            if ($response->status() === 403) return response()->json(['error' => 'Forbidden: Invalid client credentials'], 403);
             return response()->json($response->json(), $response->status());
-            }  catch (\Throwable $e) {
-            // ❌ Error umum lain
+
+        } catch (\Throwable $e) {
             return response()->json([
-                'error' => 'Failed to connect to Python Gateway API',
+                'error' => 'Gateway error',
                 'message' => $e->getMessage(),
             ], 500);
         }
     }
 
+    // ================= UTIL =================
 
     private function extractGenderFromNik(string $nik): ?string
     {
         if (strlen($nik) < 12) return null;
-
         $day = intval(substr($nik, 6, 2));
         return $day > 40 ? 'female' : 'male';
     }
 
-    /**
-     * Ambil birthdate dari NIK
-     */
     private function extractBirthdateFromNik(string $nik): ?string
     {
         if (strlen($nik) < 12) return null;
@@ -148,22 +146,17 @@ class MendagriController extends Controller
         $month = intval(substr($nik, 8, 2));
         $year = intval(substr($nik, 10, 2));
 
-        if ($day > 40) $day -= 40; // Perempuan
+        if ($day > 40) $day -= 40;
         $fullYear = $year <= 25 ? 2000 + $year : 1900 + $year;
 
         return sprintf('%04d-%02d-%02d', $fullYear, $month, $day);
     }
 
-    /**
-     * Hitung usia dari birthdate (YYYY-MM-DD)
-     */
     private function calculateAge(string $birthdate): int
     {
         $birth = new \DateTime($birthdate);
         $today = new \DateTime();
-        $age = $today->diff($birth)->y;
-
-        return $age;
+        return $today->diff($birth)->y;
     }
 
 

@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 class VerifyAppAccess
 {
@@ -17,17 +16,25 @@ class VerifyAppAccess
             return response()->json(['error' => 'Missing signature or timestamp'], 403);
         }
 
-        // batasi validitas timestamp 5 menit
+        // Validasi timestamp
         if (abs(time() - (int)$timestamp) > 300) {
             return response()->json(['error' => 'Expired timestamp'], 403);
         }
 
         $secret = env('APP_KEY');
-        $body = $request->all();
-        ksort($body);
-        $json = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        // 🔥 PAKAI RAW BODY
+        $json = $request->getContent();
 
         $computed = hash_hmac('sha256', $json . $timestamp, $secret);
+
+        // DEBUG (sementara)
+        \Log::info('VERIFY DEBUG', [
+            'raw_body' => $json,
+            'timestamp' => $timestamp,
+            'computed' => $computed,
+            'received' => $signature,
+        ]);
 
         if (!hash_equals($computed, $signature)) {
             return response()->json(['error' => 'Invalid signature'], 403);

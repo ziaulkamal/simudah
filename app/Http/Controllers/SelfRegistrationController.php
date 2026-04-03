@@ -64,7 +64,7 @@ class SelfRegistrationController extends Controller
                 $this->pushWhatsApp($otp, $normalizedPhone);
 
                 DB::commit();
-
+		
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Akun Anda sudah terdaftar namun belum terverifikasi. Kami telah mengirim ulang kode OTP.',
@@ -222,16 +222,11 @@ class SelfRegistrationController extends Controller
             $response = $client->post(env('WA_GATEWAY_URL'), [
                 'headers' => [
                     'Accept' => 'application/json',
-                    'X-Api-Key' => env('WA_API_KEY'),
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [
-                    'chatId' => $chatId,
-                    'reply_to' => null,
-                    'text' => $text,
-                    'linkPreview' => false,
-                    'linkPreviewHighQuality' => false,
-                    'session' => 'default',
+                    'phoneNumber' => $normalized,
+                    'message' => $text,
                 ],
             ]);
 

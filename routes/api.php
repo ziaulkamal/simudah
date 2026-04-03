@@ -15,11 +15,11 @@ use Illuminate\Support\Facades\Route;
 
 
 
-Route::prefix('mendagri')->middleware(['ajax.same.origin'])->group(function () {
-    Route::post('/identity/nik', [MendagriController::class, 'fetchIdentityByNik'])->middleware('verify.app');
-    Route::post('/identity/search', [MendagriController::class, 'fetchIdentityBySearch'])->middleware('verify.app');
+Route::prefix('mendagri')->group(function () {
+    Route::post('/identity/nik', [MendagriController::class, 'fetchIdentityByNik']);
+    Route::post('/identity/search', [MendagriController::class, 'fetchIdentityBySearch']);
 });
-Route::get('/admin/activation/data', [ActivationController::class, 'data'])->middleware(['ajax.same.origin'])->name('activation.data');
+Route::get('/admin/activation/data', [ActivationController::class, 'data'])->name('activation.data');
 
 Route::prefix('people')->group(function () {
     Route::post('/', [PeopleController::class, 'store'])->middleware(['ajax.same.origin'])->name('people.store');
